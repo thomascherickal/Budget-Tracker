@@ -2,6 +2,7 @@
    Sovereign Budget - Application Controller Logic (Cache-only Local Mode)
    ========================================================================== */
 
+if (typeof document !== 'undefined') {
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Lucide Icons
     lucide.createIcons();
@@ -35,85 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const EXPENSE_CATEGORIES = ['Food', 'Housing', 'Utilities', 'Transportation', 'Entertainment', 'Shopping', 'Healthcare', 'Education', 'Insurance', 'Subscriptions', 'Debt', 'Other'];
     const INCOME_CATEGORIES = ['Salary', 'Freelance', 'Investment', 'Other'];
 
-    // Map of 210 locales and their default currency codes and symbols
-    const LOCALE_CURRENCIES = {
-        // North America
-        "en-US": ["USD", "$"], "es-US": ["USD", "$"], "en-CA": ["CAD", "$"], "fr-CA": ["CAD", "$"], "es-MX": ["MXN", "$"],
-        // Eurozone
-        "de-DE": ["EUR", "€"], "fr-FR": ["EUR", "€"], "es-ES": ["EUR", "€"], "it-IT": ["EUR", "€"], "nl-NL": ["EUR", "€"],
-        "pt-PT": ["EUR", "€"], "fi-FI": ["EUR", "€"], "el-GR": ["EUR", "€"], "ga-IE": ["EUR", "€"], "de-AT": ["EUR", "€"],
-        "fr-BE": ["EUR", "€"], "nl-BE": ["EUR", "€"], "et-EE": ["EUR", "€"], "sk-SK": ["EUR", "€"], "sl-SI": ["EUR", "€"],
-        "lv-LV": ["EUR", "€"], "lt-LT": ["EUR", "€"], "mt-MT": ["EUR", "€"], "de-LU": ["EUR", "€"], "fr-LU": ["EUR", "€"],
-        "en-IE": ["EUR", "€"], "es-AD": ["EUR", "€"], "fr-MC": ["EUR", "€"], "it-SM": ["EUR", "€"], "it-VA": ["EUR", "€"],
-        "fr-GP": ["EUR", "€"], "fr-MQ": ["EUR", "€"], "fr-RE": ["EUR", "€"], "fr-YT": ["EUR", "€"], "fr-GF": ["EUR", "€"],
-        // United Kingdom
-        "en-GB": ["GBP", "£"], "cy-GB": ["GBP", "£"], "gd-GB": ["GBP", "£"],
-        // Europe (Other)
-        "ru-RU": ["RUB", "₽"], "uk-UA": ["UAH", "₴"], "pl-PL": ["PLN", "zł"], "cs-CZ": ["CZK", "Kč"], "hu-HU": ["HUF", "Ft"],
-        "ro-RO": ["RON", "lei"], "bg-BG": ["BGN", "лв"], "hr-HR": ["EUR", "€"], "sr-RS": ["RSD", "RSD"], "bs-BA": ["BAM", "KM"],
-        "mk-MK": ["MKD", "den"], "sq-AL": ["ALL", "L"], "sv-SE": ["SEK", "kr"], "no-NO": ["NOK", "kr"], "nb-NO": ["NOK", "kr"],
-        "nn-NO": ["NOK", "kr"], "da-DK": ["DKK", "kr"], "is-IS": ["ISK", "kr"], "tr-TR": ["TRY", "₺"], "az-AZ": ["AZN", "₼"],
-        "ka-GE": ["GEL", "₾"], "hy-AM": ["AMD", "֏"], "de-CH": ["CHF", "CHF"], "fr-CH": ["CHF", "CHF"], "it-CH": ["CHF", "CHF"],
-        "be-BY": ["BYN", "Br"], "ro-MD": ["MDL", "L"], "sq-XK": ["EUR", "€"], "sr-XK": ["EUR", "€"], "fo-FO": ["DKK", "kr"],
-        "kl-GL": ["DKK", "kr"], "gi-GI": ["GIP", "£"],
-        // Asia
-        "zh-CN": ["CNY", "¥"], "ja-JP": ["JPY", "¥"], "ko-KR": ["KRW", "₩"], "en-IN": ["INR", "₹"], "hi-IN": ["INR", "₹"],
-        "bn-IN": ["INR", "₹"], "ta-IN": ["INR", "₹"], "te-IN": ["INR", "₹"], "kn-IN": ["INR", "₹"], "ml-IN": ["INR", "₹"],
-        "mr-IN": ["INR", "₹"], "gu-IN": ["INR", "₹"], "pa-IN": ["INR", "₹"], "or-IN": ["INR", "₹"], "as-IN": ["INR", "₹"],
-        "ur-IN": ["INR", "₹"], "ur-PK": ["PKR", "₨"], "en-PK": ["PKR", "₨"], "bn-BD": ["BDT", "৳"], "ne-NP": ["NPR", "₨"],
-        "si-LK": ["LKR", "₨"], "ta-LK": ["LKR", "₨"], "my-MM": ["MMK", "K"], "th-TH": ["THB", "฿"], "vi-VN": ["VND", "₫"],
-        "id-ID": ["IDR", "Rp"], "ms-MY": ["MYR", "RM"], "fil-PH": ["PHP", "₱"], "en-PH": ["PHP", "₱"], "en-SG": ["SGD", "$"],
-        "zh-SG": ["SGD", "$"], "zh-HK": ["HKD", "$"], "en-HK": ["HKD", "$"], "zh-TW": ["TWD", "NT$"], "mn-MN": ["MNT", "₮"],
-        "km-KH": ["KHR", "៛"], "lo-LA": ["LAK", "₭"], "uz-UZ": ["UZS", "so'm"], "kk-KZ": ["KZT", "₸"], "ky-KG": ["KGS", "сом"],
-        "tg-TJ": ["TJS", "SM"], "tk-TM": ["TMT", "T"], "en-PG": ["PGK", "K"], "dz-BT": ["BTN", "Nu."], "dv-MV": ["MVR", "Rf"],
-        "tl-TL": ["USD", "$"], "en-FM": ["USD", "$"], "en-MH": ["USD", "$"], "en-PW": ["USD", "$"], "en-SB": ["SBD", "$"],
-        "en-VU": ["VUV", "VT"], "en-FJ": ["FJD", "$"], "en-TO": ["TOP", "T$"], "en-WS": ["WST", "WS$"], "en-KI": ["AUD", "$"],
-        "en-NR": ["AUD", "$"], "en-TV": ["AUD", "$"],
-        // Middle East & North Africa
-        "ar-SA": ["SAR", "ر.س"], "ar-AE": ["AED", "د.إ"], "ar-EG": ["EGP", "E£"], "ar-IL": ["ILS", "₪"], "he-IL": ["ILS", "₪"],
-        "ar-JO": ["JOD", "د.ا"], "ar-LB": ["LBP", "ل.ل"], "ar-SY": ["SYP", "ل.س"], "ar-IQ": ["IQD", "د.ع"], "ar-KW": ["KWD", "د.ك"],
-        "ar-QA": ["QAR", "ر.ق"], "ar-BH": ["BHD", "د.ب"], "ar-OM": ["OMR", "ر.ع"], "ar-YE": ["YER", "ر.ي"], "fa-IR": ["IRR", "﷼"],
-        "ar-DZ": ["DZD", "د.ج"], "ar-MA": ["MAD", "د.م."], "ar-TN": ["TND", "د.ت"], "ar-LY": ["LYD", "د.ل"], "ar-SD": ["SDG", "ج.س."],
-        "ku-TR": ["TRY", "₺"], "ku-IQ": ["IQD", "د.ع"], "ar-MR": ["MRU", "UM"], "ar-DJ": ["DJF", "Fdj"], "ar-SO": ["SOS", "Sh.So."],
-        // South & Central America
-        "pt-BR": ["BRL", "R$"], "es-AR": ["ARS", "$"], "es-CO": ["COP", "$"], "es-CL": ["CLP", "$"], "es-PE": ["PEN", "S/."],
-        "es-VE": ["VES", "Bs.S"], "es-EC": ["USD", "$"], "es-UY": ["UYU", "$"], "es-PY": ["PYG", "₲"], "es-BO": ["BOB", "Bs."],
-        "es-CR": ["CRC", "₡"], "es-PA": ["PAB", "B/."], "es-NI": ["NIO", "C$"], "es-HN": ["HNL", "L"], "es-SV": ["USD", "$"],
-        "es-GT": ["GTQ", "Q"], "es-DO": ["DOP", "RD$"], "es-PR": ["USD", "$"], "es-CU": ["CUP", "$"], "en-JM": ["JMD", "$"],
-        "en-TT": ["TTD", "$"], "en-BS": ["BSD", "$"], "en-BB": ["BBD", "$"], "en-BZ": ["BZD", "$"], "en-GY": ["GYD", "$"],
-        "nl-SR": ["SRD", "$"], "fr-GF": ["EUR", "€"], "es-HN": ["HNL", "L"], "es-PA": ["PAB", "B/."],
-        // Africa (Other)
-        "en-ZA": ["ZAR", "R"], "af-ZA": ["ZAR", "R"], "zu-ZA": ["ZAR", "R"], "xh-ZA": ["ZAR", "R"], "en-NG": ["NGN", "₦"],
-        "yo-NG": ["NGN", "₦"], "ig-NG": ["NGN", "₦"], "ha-NG": ["NGN", "₦"], "sw-KE": ["KES", "KSh"], "en-KE": ["KES", "KSh"],
-        "am-ET": ["ETB", "Br"], "en-GH": ["GHS", "GH₵"], "ak-GH": ["GHS", "GH₵"], "fr-CI": ["XOF", "CFA"], "fr-SN": ["XOF", "CFA"],
-        "fr-CM": ["XAF", "FCFA"], "fr-CG": ["XAF", "FCFA"], "fr-GA": ["XAF", "FCFA"], "fr-NE": ["XOF", "CFA"], "fr-BF": ["XOF", "CFA"],
-        "fr-ML": ["XOF", "CFA"], "fr-BJ": ["XOF", "CFA"], "fr-TG": ["XOF", "CFA"], "fr-MG": ["MGA", "Ar"], "en-UG": ["UGX", "USh"],
-        "en-TZ": ["TZS", "TSh"], "sw-TZ": ["TZS", "TSh"], "pt-AO": ["AOA", "Kz"], "pt-MZ": ["MZN", "MT"], "en-ZW": ["USD", "$"],
-        "en-ZM": ["ZMW", "ZK"], "en-MW": ["MWK", "MK"], "en-NA": ["NAD", "$"], "en-BW": ["BWP", "P"], "fr-CD": ["CDF", "FC"],
-        "en-LR": ["LRD", "$"], "en-SL": ["SLL", "Le"], "en-GM": ["GMD", "D"], "pt-CV": ["CVE", "Esc"], "fr-MU": ["MUR", "₨"],
-        "fr-BI": ["BIF", "FBu"], "fr-RW": ["RWF", "FRw"], "fr-DJ": ["DJF", "Fdj"], "en-LS": ["LSL", "L"], "en-SZ": ["SZL", "L"],
-        "ar-KM": ["KMF", "CF"], "fr-KM": ["KMF", "CF"], "en-SS": ["SSP", "£"], "ar-SO": ["SOS", "Sh.So."], "en-SO": ["SOS", "Sh.So."],
-        "fr-GN": ["GNF", "FG"], "en-GM": ["GMD", "D"], "en-LR": ["LRD", "$"], "en-SL": ["SLL", "Le"],
-        // Oceania
-        "en-AU": ["AUD", "$"], "en-NZ": ["NZD", "$"]
-    };
-
-    function detectUserCurrency() {
-        const locale = navigator.language || (navigator.languages && navigator.languages[0]) || 'en-US';
-        // Exact match
-        if (LOCALE_CURRENCIES[locale]) {
-            return { code: LOCALE_CURRENCIES[locale][0], symbol: LOCALE_CURRENCIES[locale][1] };
-        }
-        // Partial matching by language code
-        const lang = locale.split('-')[0];
-        for (const loc in LOCALE_CURRENCIES) {
-            if (loc.startsWith(lang)) {
-                return { code: LOCALE_CURRENCIES[loc][0], symbol: LOCALE_CURRENCIES[loc][1] };
-            }
-        }
-        // Default USD fallback
-        return { code: 'USD', symbol: '$' };
-    }
+    // Currency locales map and detection functions are defined globally at the bottom of the file.
 
     function updateCurrencySymbolsUI() {
         const symbol = AppState.currencySymbol || '$';
@@ -126,23 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
        1. Database Storage Management (LocalStorage & Backups)
        ========================================================================== */
     
-    function getSymbolForCurrency(currencyCode) {
-        for (const loc in LOCALE_CURRENCIES) {
-            if (LOCALE_CURRENCIES[loc][0] === currencyCode) {
-                return LOCALE_CURRENCIES[loc][1];
-            }
-        }
-        return '$';
-    }
-
-    function getLocaleForCurrency(currencyCode) {
-        for (const loc in LOCALE_CURRENCIES) {
-            if (LOCALE_CURRENCIES[loc][0] === currencyCode) {
-                return loc;
-            }
-        }
-        return 'en-US';
-    }
+    // Currency helper functions are defined globally at the bottom of the file.
 
     function loadData() {
         try {
@@ -199,17 +106,34 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function exportDatabaseBackup() {
-        const dataStr = JSON.stringify(AppState.db, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-        
-        const exportFileDefaultName = 'sovereign_budget_backup_' + new Date().toISOString().slice(0, 10) + '.json';
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-        showToast('Database backup downloaded.', 'success');
+    async function exportDatabaseBackup() {
+        const username = prompt('Enter your OS Username to encrypt this backup:');
+        if (username === null) {
+            return; // Cancelled
+        }
+        const trimmed = username.trim();
+        if (!trimmed) {
+            showToast('Backup aborted. Username is required for encryption.', 'warning');
+            return;
+        }
+
+        try {
+            const dataStr = JSON.stringify(AppState.db, null, 2);
+            const envelope = await encryptData(dataStr, trimmed);
+            const envelopeStr = JSON.stringify(envelope, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(envelopeStr);
+            
+            const exportFileDefaultName = 'sovereign_budget_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            showToast('Encrypted database backup downloaded.', 'success');
+        } catch (err) {
+            console.error('Failed to encrypt backup:', err);
+            showToast('Encryption failed: ' + err.message, 'error');
+        }
     }
 
     function handleImportJSON(event) {
@@ -217,14 +141,51 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) return;
         
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const parsed = JSON.parse(e.target.result);
-                if (!parsed.transactions || !parsed.recurringExpenses) {
+                
+                let dbData;
+                if (parsed.version === 'encrypted-v1') {
+                    const username = prompt('This backup is encrypted. Enter the OS Username used during export to decrypt:');
+                    if (username === null) {
+                        return; // Cancelled
+                    }
+                    const trimmed = username.trim();
+                    if (!trimmed) {
+                        showToast('Import aborted. Username is required for decryption.', 'warning');
+                        return;
+                    }
+                    try {
+                        const decryptedStr = await decryptData(parsed, trimmed);
+                        dbData = JSON.parse(decryptedStr);
+                    } catch (decryptErr) {
+                        throw new Error('Decryption failed. Please verify your username.');
+                    }
+                } else {
+                    dbData = parsed;
+                }
+
+                if (!dbData.transactions || !dbData.recurringExpenses) {
                     throw new Error('Invalid schema: Missing primary transaction array keys.');
                 }
-                AppState.db = parsed;
+                
+                AppState.db = dbData;
+                
+                // Sync settings currency with AppState properties
+                if (AppState.db.settings.currency) {
+                    AppState.currencyCode = AppState.db.settings.currency;
+                    AppState.currencySymbol = getSymbolForCurrency(AppState.currencyCode);
+                }
+                
+                // Update sidebar select dropdown value
+                const currencySelect = document.getElementById('settings-currency-select');
+                if (currencySelect) {
+                    currencySelect.value = AppState.currencyCode;
+                }
+                
                 saveData();
+                updateCurrencySymbolsUI();
                 showToast('Database imported successfully.', 'success');
                 renderActiveTab();
             } catch (err) {
@@ -331,56 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
        4. Financial Calculations & State Sync
        ========================================================================== */
     function getMonthFinancials(monthStr) {
-        // 1. Logged Income
-        const loggedIncome = AppState.db.transactions
-            .filter(tx => tx.type === 'income' && tx.date.startsWith(monthStr))
-            .reduce((sum, tx) => sum + tx.amount, 0);
-
-        // 2. Logged Variable Expenses
-        const loggedExpenses = AppState.db.transactions
-            .filter(tx => tx.type === 'expense' && tx.date.startsWith(monthStr))
-            .reduce((sum, tx) => sum + tx.amount, 0);
-
-        // 3. Recurring Commitments
-        const recurringTotal = AppState.db.recurringExpenses
-            .reduce((sum, item) => sum + item.amount, 0);
-
-        // 4. One-Time planned commitments for this specific month
-        const onetimeTotal = AppState.db.oneTimeExpenses
-            .filter(item => item.date.startsWith(monthStr))
-            .reduce((sum, item) => sum + item.amount, 0);
-
-        // Compute aggregations
-        const totalIncome = loggedIncome;
-        const totalExpenses = loggedExpenses + recurringTotal + onetimeTotal;
-        const savingsRequirement = AppState.db.settings.savingsRequirement || 0;
-        
-        // Net remaining after meeting expenses AND savings requirement
-        const netBalance = totalIncome - totalExpenses - savingsRequirement;
-        
-        // Actual surplus = Income - Expenses
-        const actualSurplus = totalIncome - totalExpenses;
-        
-        // Savings Progress %
-        let savingsProgressPct = 0;
-        if (savingsRequirement > 0) {
-            // Calculate progress based on actual surplus
-            savingsProgressPct = Math.max(0, Math.min(100, (actualSurplus / savingsRequirement) * 100));
-        } else {
-            savingsProgressPct = 100;
-        }
-
-        return {
-            totalIncome,
-            totalExpenses,
-            loggedExpenses,
-            recurringTotal,
-            onetimeTotal,
-            savingsRequirement,
-            netBalance,
-            actualSurplus,
-            savingsProgressPct
-        };
+        return getMonthFinancialsGlobal(monthStr, AppState.db);
     }
 
     /* ==========================================================================
@@ -1213,20 +1125,21 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBudgetManager();
     });
 
-    // Currency Settings Form Submission
-    document.getElementById('form-currency-settings').addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const selCurrency = document.getElementById('settings-currency-select').value;
-        AppState.db.settings.currency = selCurrency;
-        AppState.currencyCode = selCurrency;
-        AppState.currencySymbol = getSymbolForCurrency(selCurrency);
-        
-        saveData();
-        updateCurrencySymbolsUI();
-        showToast('Currency settings updated.', 'success');
-        renderActiveTab();
-    });
+    // Sidebar Currency Selector Change Listener
+    const currencySelect = document.getElementById('settings-currency-select');
+    if (currencySelect) {
+        currencySelect.addEventListener('change', (e) => {
+            const selCurrency = e.target.value;
+            AppState.db.settings.currency = selCurrency;
+            AppState.currencyCode = selCurrency;
+            AppState.currencySymbol = getSymbolForCurrency(selCurrency);
+            
+            saveData();
+            updateCurrencySymbolsUI();
+            showToast('Currency updated to ' + selCurrency, 'success');
+            renderActiveTab();
+        });
+    }
 
     // Add Recurring Expense Settings Submit
     document.getElementById('form-add-recurring').addEventListener('submit', (e) => {
@@ -1353,3 +1266,298 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fire application load
     init();
 });
+}
+
+/* ==========================================================================
+   Utility Helpers & Cryptographic Engine (Shared with Node.js Tests)
+   ========================================================================== */
+
+function arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    if (typeof Buffer !== 'undefined') {
+        return Buffer.from(bytes).toString('base64');
+    }
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+function base64ToArrayBuffer(base64) {
+    if (typeof Buffer !== 'undefined') {
+        const buf = Buffer.from(base64, 'base64');
+        return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+    }
+    const binaryStr = atob(base64);
+    const len = binaryStr.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+async function hashUsername(username) {
+    const cryptoObj = typeof crypto !== 'undefined' ? crypto : (typeof window !== 'undefined' ? window.crypto : null);
+    if (!cryptoObj) throw new Error('Crypto API not available');
+    
+    const sanitized = (username || '').trim().toLowerCase();
+    const encoder = new TextEncoder();
+    const data = encoder.encode(sanitized);
+    return await cryptoObj.subtle.digest('SHA-256', data);
+}
+
+async function deriveKey(usernameHash, salt) {
+    const cryptoObj = typeof crypto !== 'undefined' ? crypto : (typeof window !== 'undefined' ? window.crypto : null);
+    if (!cryptoObj) throw new Error('Crypto API not available');
+    
+    const baseKey = await cryptoObj.subtle.importKey(
+        'raw',
+        usernameHash,
+        'PBKDF2',
+        false,
+        ['deriveKey']
+    );
+    
+    return await cryptoObj.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: salt,
+            iterations: 100000,
+            hash: 'SHA-256'
+        },
+        baseKey,
+        {
+            name: 'AES-GCM',
+            length: 256
+        },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+async function encryptData(plaintext, username) {
+    const cryptoObj = typeof crypto !== 'undefined' ? crypto : (typeof window !== 'undefined' ? window.crypto : null);
+    if (!cryptoObj) throw new Error('Crypto API not available');
+    
+    const usernameHash = await hashUsername(username);
+    const salt = cryptoObj.getRandomValues(new Uint8Array(16));
+    const aesKey = await deriveKey(usernameHash, salt);
+    
+    const iv = cryptoObj.getRandomValues(new Uint8Array(12));
+    const encoder = new TextEncoder();
+    const encodedPlaintext = encoder.encode(plaintext);
+    
+    const ciphertextBuffer = await cryptoObj.subtle.encrypt(
+        {
+            name: 'AES-GCM',
+            iv: iv
+        },
+        aesKey,
+        encodedPlaintext
+    );
+    
+    return {
+        version: 'encrypted-v1',
+        salt: arrayBufferToBase64(salt),
+        iv: arrayBufferToBase64(iv),
+        ciphertext: arrayBufferToBase64(ciphertextBuffer),
+        lastUpdated: new Date().toISOString()
+    };
+}
+
+async function decryptData(envelope, username) {
+    const cryptoObj = typeof crypto !== 'undefined' ? crypto : (typeof window !== 'undefined' ? window.crypto : null);
+    if (!cryptoObj) throw new Error('Crypto API not available');
+    
+    if (!envelope || envelope.version !== 'encrypted-v1') {
+        throw new Error('Unsupported backup format or missing encryption version.');
+    }
+    
+    const usernameHash = await hashUsername(username);
+    const salt = new Uint8Array(base64ToArrayBuffer(envelope.salt));
+    const iv = new Uint8Array(base64ToArrayBuffer(envelope.iv));
+    const ciphertext = base64ToArrayBuffer(envelope.ciphertext);
+    
+    const aesKey = await deriveKey(usernameHash, salt);
+    
+    const decryptedBuffer = await cryptoObj.subtle.decrypt(
+        {
+            name: 'AES-GCM',
+            iv: iv
+        },
+        aesKey,
+        ciphertext
+    );
+    
+    const decoder = new TextDecoder();
+    return decoder.decode(decryptedBuffer);
+}
+
+function getMonthFinancialsGlobal(monthStr, db) {
+    if (!db) {
+        throw new Error("Database state is required");
+    }
+    // 1. Logged Income
+    const loggedIncome = db.transactions
+        .filter(tx => tx.type === 'income' && tx.date.startsWith(monthStr))
+        .reduce((sum, tx) => sum + tx.amount, 0);
+
+    // 2. Logged Variable Expenses
+    const loggedExpenses = db.transactions
+        .filter(tx => tx.type === 'expense' && tx.date.startsWith(monthStr))
+        .reduce((sum, tx) => sum + tx.amount, 0);
+
+    // 3. Recurring Commitments
+    const recurringTotal = db.recurringExpenses
+        .reduce((sum, item) => sum + item.amount, 0);
+
+    // 4. One-Time planned commitments for this specific month
+    const onetimeTotal = db.oneTimeExpenses
+        .filter(item => item.date.startsWith(monthStr))
+        .reduce((sum, item) => sum + item.amount, 0);
+
+    // Compute aggregations
+    const totalIncome = loggedIncome;
+    const totalExpenses = loggedExpenses + recurringTotal + onetimeTotal;
+    const savingsRequirement = db.settings.savingsRequirement || 0;
+    
+    // Net remaining after meeting expenses AND savings requirement
+    const netBalance = totalIncome - totalExpenses - savingsRequirement;
+    
+    // Actual surplus = Income - Expenses
+    const actualSurplus = totalIncome - totalExpenses;
+    
+    // Savings Progress %
+    let savingsProgressPct = 0;
+    if (savingsRequirement > 0) {
+        // Calculate progress based on actual surplus
+        savingsProgressPct = Math.max(0, Math.min(100, (actualSurplus / savingsRequirement) * 100));
+    } else {
+        savingsProgressPct = 100;
+    }
+
+    return {
+        totalIncome,
+        totalExpenses,
+        loggedExpenses,
+        recurringTotal,
+        onetimeTotal,
+        savingsRequirement,
+        netBalance,
+        actualSurplus,
+        savingsProgressPct
+    };
+}
+
+const LOCALE_CURRENCIES = {
+    // North America
+    "en-US": ["USD", "$"], "es-US": ["USD", "$"], "en-CA": ["CAD", "$"], "fr-CA": ["CAD", "$"], "es-MX": ["MXN", "$"],
+    // Eurozone
+    "de-DE": ["EUR", "€"], "fr-FR": ["EUR", "€"], "es-ES": ["EUR", "€"], "it-IT": ["EUR", "€"], "nl-NL": ["EUR", "€"],
+    "pt-PT": ["EUR", "€"], "fi-FI": ["EUR", "€"], "el-GR": ["EUR", "€"], "ga-IE": ["EUR", "€"], "de-AT": ["EUR", "€"],
+    "fr-BE": ["EUR", "€"], "nl-BE": ["EUR", "€"], "et-EE": ["EUR", "€"], "sk-SK": ["EUR", "€"], "sl-SI": ["EUR", "€"],
+    "lv-LV": ["EUR", "€"], "lt-LT": ["EUR", "€"], "mt-MT": ["EUR", "€"], "de-LU": ["EUR", "€"], "fr-LU": ["EUR", "€"],
+    "en-IE": ["EUR", "€"], "es-AD": ["EUR", "€"], "fr-MC": ["EUR", "€"], "it-SM": ["EUR", "€"], "it-VA": ["EUR", "€"],
+    "fr-GP": ["EUR", "€"], "fr-MQ": ["EUR", "€"], "fr-RE": ["EUR", "€"], "fr-YT": ["EUR", "€"], "fr-GF": ["EUR", "€"],
+    // United Kingdom
+    "en-GB": ["GBP", "£"], "cy-GB": ["GBP", "£"], "gd-GB": ["GBP", "£"],
+    // Europe (Other)
+    "ru-RU": ["RUB", "₽"], "uk-UA": ["UAH", "₴"], "pl-PL": ["PLN", "zł"], "cs-CZ": ["CZK", "Kč"], "hu-HU": ["HUF", "Ft"],
+    "ro-RO": ["RON", "lei"], "bg-BG": ["BGN", "лв"], "hr-HR": ["EUR", "€"], "sr-RS": ["RSD", "RSD"], "bs-BA": ["BAM", "KM"],
+    "mk-MK": ["MKD", "den"], "sq-AL": ["ALL", "L"], "sv-SE": ["SEK", "kr"], "no-NO": ["NOK", "kr"], "nb-NO": ["NOK", "kr"],
+    "nn-NO": ["NOK", "kr"], "da-DK": ["DKK", "kr"], "is-IS": ["ISK", "kr"], "tr-TR": ["TRY", "₺"], "az-AZ": ["AZN", "₼"],
+    "ka-GE": ["GEL", "₾"], "hy-AM": ["AMD", "֏"], "de-CH": ["CHF", "CHF"], "fr-CH": ["CHF", "CHF"], "it-CH": ["CHF", "CHF"],
+    "be-BY": ["BYN", "Br"], "ro-MD": ["MDL", "L"], "sq-XK": ["EUR", "€"], "sr-XK": ["EUR", "€"], "fo-FO": ["DKK", "kr"],
+    "kl-GL": ["DKK", "kr"], "gi-GI": ["GIP", "£"],
+    // Asia
+    "zh-CN": ["CNY", "¥"], "ja-JP": ["JPY", "¥"], "ko-KR": ["KRW", "₩"], "en-IN": ["INR", "₹"], "hi-IN": ["INR", "₹"],
+    "bn-IN": ["INR", "₹"], "ta-IN": ["INR", "₹"], "te-IN": ["INR", "₹"], "kn-IN": ["INR", "₹"], "ml-IN": ["INR", "₹"],
+    "mr-IN": ["INR", "₹"], "gu-IN": ["INR", "₹"], "pa-IN": ["INR", "₹"], "or-IN": ["INR", "₹"], "as-IN": ["INR", "₹"],
+    "ur-IN": ["INR", "₹"], "ur-PK": ["PKR", "₨"], "en-PK": ["PKR", "₨"], "bn-BD": ["BDT", "৳"], "ne-NP": ["NPR", "₨"],
+    "si-LK": ["LKR", "₨"], "ta-LK": ["LKR", "₨"], "my-MM": ["MMK", "K"], "th-TH": ["THB", "฿"], "vi-VN": ["VND", "₫"],
+    "id-ID": ["IDR", "Rp"], "ms-MY": ["MYR", "RM"], "fil-PH": ["PHP", "₱"], "en-PH": ["PHP", "₱"], "en-SG": ["SGD", "$"],
+    "zh-SG": ["SGD", "$"], "zh-HK": ["HKD", "$"], "en-HK": ["HKD", "$"], "zh-TW": ["TWD", "NT$"], "mn-MN": ["MNT", "₮"],
+    "km-KH": ["KHR", "៛"], "lo-LA": ["LAK", "₭"], "uz-UZ": ["UZS", "so'm"], "kk-KZ": ["KZT", "₸"], "ky-KG": ["KGS", "сом"],
+    "tg-TJ": ["TJS", "SM"], "tk-TM": ["TMT", "T"], "en-PG": ["PGK", "K"], "dz-BT": ["BTN", "Nu."], "dv-MV": ["MVR", "Rf"],
+    "tl-TL": ["USD", "$"], "en-FM": ["USD", "$"], "en-MH": ["USD", "$"], "en-PW": ["USD", "$"], "en-SB": ["SBD", "$"],
+    "en-VU": ["VUV", "VT"], "en-FJ": ["FJD", "$"], "en-TO": ["TOP", "T$"], "en-WS": ["WST", "WS$"], "en-KI": ["AUD", "$"],
+    "en-NR": ["AUD", "$"], "en-TV": ["AUD", "$"],
+    // Middle East & North Africa
+    "ar-SA": ["SAR", "ر.س"], "ar-AE": ["AED", "د.إ"], "ar-EG": ["EGP", "E£"], "ar-IL": ["ILS", "₪"], "he-IL": ["ILS", "₪"],
+    "ar-JO": ["JOD", "د.ا"], "ar-LB": ["LBP", "ل.ل"], "ar-SY": ["SYP", "ل.س"], "ar-IQ": ["IQD", "د.ع"], "ar-KW": ["KWD", "د.ك"],
+    "ar-QA": ["QAR", "ر.ق"], "ar-BH": ["BHD", "د.ب"], "ar-OM": ["OMR", "ر.ع"], "ar-YE": ["YER", "ر.ي"], "fa-IR": ["IRR", "﷼"],
+    "ar-DZ": ["DZD", "د.ج"], "ar-MA": ["MAD", "د.م."], "ar-TN": ["TND", "د.ت"], "ar-LY": ["LYD", "د.ل"], "ar-SD": ["SDG", "ج.س."],
+    "ku-TR": ["TRY", "₺"], "ku-IQ": ["IQD", "د.ع"], "ar-MR": ["MRU", "UM"], "ar-DJ": ["DJF", "Fdj"], "ar-SO": ["SOS", "Sh.So."],
+    // South & Central America
+    "pt-BR": ["BRL", "R$"], "es-AR": ["ARS", "$"], "es-CO": ["COP", "$"], "es-CL": ["CLP", "$"], "es-PE": ["PEN", "S/."],
+    "es-VE": ["VES", "Bs.S"], "es-EC": ["USD", "$"], "es-UY": ["UYU", "$"], "es-PY": ["PYG", "₲"], "es-BO": ["BOB", "Bs."],
+    "es-CR": ["CRC", "₡"], "es-PA": ["PAB", "B/."], "es-NI": ["NIO", "C$"], "es-HN": ["HNL", "L"], "es-SV": ["USD", "$"],
+    "es-GT": ["GTQ", "Q"], "es-DO": ["DOP", "RD$"], "es-PR": ["USD", "$"], "es-CU": ["CUP", "$"], "en-JM": ["JMD", "$"],
+    "en-TT": ["TTD", "$"], "en-BS": ["BSD", "$"], "en-BB": ["BBD", "$"], "en-BZ": ["BZD", "$"], "en-GY": ["GYD", "$"],
+    "nl-SR": ["SRD", "$"], "fr-GF": ["EUR", "€"], "es-HN": ["HNL", "L"], "es-PA": ["PAB", "B/."],
+    // Africa (Other)
+    "en-ZA": ["ZAR", "R"], "af-ZA": ["ZAR", "R"], "zu-ZA": ["ZAR", "R"], "xh-ZA": ["ZAR", "R"], "en-NG": ["NGN", "₦"],
+    "yo-NG": ["NGN", "₦"], "ig-NG": ["NGN", "₦"], "ha-NG": ["NGN", "₦"], "sw-KE": ["KES", "KSh"], "en-KE": ["KES", "KSh"],
+    "am-ET": ["ETB", "Br"], "en-GH": ["GHS", "GH₵"], "ak-GH": ["GHS", "GH₵"], "fr-CI": ["XOF", "CFA"], "fr-SN": ["XOF", "CFA"],
+    "fr-CM": ["XAF", "FCFA"], "fr-CG": ["XAF", "FCFA"], "fr-GA": ["XAF", "FCFA"], "fr-NE": ["XOF", "CFA"], "fr-BF": ["XOF", "CFA"],
+    "fr-ML": ["XOF", "CFA"], "fr-BJ": ["XOF", "CFA"], "fr-TG": ["XOF", "CFA"], "fr-MG": ["MGA", "Ar"], "en-UG": ["UGX", "USh"],
+    "en-TZ": ["TZS", "TSh"], "sw-TZ": ["TZS", "TSh"], "pt-AO": ["AOA", "Kz"], "pt-MZ": ["MZN", "MT"], "en-ZW": ["USD", "$"],
+    "en-ZM": ["ZMW", "ZK"], "en-MW": ["MWK", "MK"], "en-NA": ["NAD", "$"], "en-BW": ["BWP", "P"], "fr-CD": ["CDF", "FC"],
+    "en-LR": ["LRD", "$"], "en-SL": ["SLL", "Le"], "en-GM": ["GMD", "D"], "pt-CV": ["CVE", "Esc"], "fr-MU": ["MUR", "₨"],
+    "fr-BI": ["BIF", "FBu"], "fr-RW": ["RWF", "FRw"], "fr-DJ": ["DJF", "Fdj"], "en-LS": ["LSL", "L"], "en-SZ": ["SZL", "L"],
+    "ar-KM": ["KMF", "CF"], "fr-KM": ["KMF", "CF"], "en-SS": ["SSP", "£"], "ar-SO": ["SOS", "Sh.So."], "en-SO": ["SOS", "Sh.So."],
+    "fr-GN": ["GNF", "FG"], "en-GM": ["GMD", "D"], "en-LR": ["LRD", "$"], "en-SL": ["SLL", "Le"],
+    // Oceania
+    "en-AU": ["AUD", "$"], "en-NZ": ["NZD", "$"]
+};
+
+function detectUserCurrency() {
+    const locale = typeof navigator !== 'undefined' ? (navigator.language || (navigator.languages && navigator.languages[0])) : 'en-US';
+    if (LOCALE_CURRENCIES[locale]) {
+        return { code: LOCALE_CURRENCIES[locale][0], symbol: LOCALE_CURRENCIES[locale][1] };
+    }
+    const lang = (locale || '').split('-')[0];
+    for (const loc in LOCALE_CURRENCIES) {
+        if (loc.startsWith(lang)) {
+            return { code: LOCALE_CURRENCIES[loc][0], symbol: LOCALE_CURRENCIES[loc][1] };
+        }
+    }
+    return { code: 'USD', symbol: '$' };
+}
+
+function getSymbolForCurrency(currencyCode) {
+    for (const loc in LOCALE_CURRENCIES) {
+        if (LOCALE_CURRENCIES[loc][0] === currencyCode) {
+            return LOCALE_CURRENCIES[loc][1];
+        }
+    }
+    return '$';
+}
+
+function getLocaleForCurrency(currencyCode) {
+    for (const loc in LOCALE_CURRENCIES) {
+        if (LOCALE_CURRENCIES[loc][0] === currencyCode) {
+            return loc;
+        }
+    }
+    return 'en-US';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        arrayBufferToBase64,
+        base64ToArrayBuffer,
+        hashUsername,
+        deriveKey,
+        encryptData,
+        decryptData,
+        getMonthFinancialsGlobal,
+        getSymbolForCurrency,
+        getLocaleForCurrency,
+        detectUserCurrency,
+        LOCALE_CURRENCIES
+    };
+}

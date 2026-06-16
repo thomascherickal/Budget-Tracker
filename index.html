@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A secure, local-first monthly budget tracker with a rich dark professional layout, visual analytics, and local file storage.">
+    <meta name="author" content="Thomas Cherickal, Generative AI Consultant">
+    <title>Sovereign Budget - Professional Personal Finance</title>
+    
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Application Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Lucide Icons (Local) -->
+    <script src="lib/lucide.min.js"></script>
+    
+    <!-- Chart.js (Local) -->
+    <script src="lib/chart.min.js"></script>
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="favicon.jpg">
+    
+    <!-- PWA Manifest & Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-panel">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <i data-lucide="shield-check" class="brand-icon"></i>
+                    <span class="brand-name">SovereignBudget</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="recurring-expenses">
+                    <i data-lucide="repeat"></i>
+                    <span>Fixed & Savings</span>
+                </button>
+                <button class="nav-item" data-tab="transaction-log">
+                    <i data-lucide="list-filter"></i>
+                    <span>All Transactions</span>
+                </button>
+                <button class="nav-item" data-tab="reports">
+                    <i data-lucide="pie-chart"></i>
+                    <span>Reports & Analytics</span>
+                </button>
+            </nav>
+            
+            <!-- Database Connection Panel -->
+            <div class="db-status-container glass-panel">
+                <div class="db-status-header">
+                    <span class="db-status-title">DATABASE</span>
+                    <span id="db-status-badge" class="badge badge-connected">Local Cache</span>
+                </div>
+                <div id="db-info" class="db-info">
+                    <p class="db-text-muted">Data auto-saves locally in browser cache. Export files for manual backup.</p>
+                </div>
+                <div class="db-actions">
+                    <button id="btn-export-db" class="btn btn-primary btn-xs btn-block">
+                        <i data-lucide="download"></i> <span>Export Backup</span>
+                    </button>
+                    <button id="btn-import-db" class="btn btn-outline btn-xs btn-block">
+                        <i data-lucide="upload"></i> <span>Import Backup</span>
+                    </button>
+                </div>
+                <div id="save-status" class="save-status hidden">
+                    <i data-lucide="cloud-lightning" class="save-icon spinning"></i>
+                    <span id="save-status-text">Saving...</span>
+                </div>
+            </div>
+            
+            <!-- Creator Credits -->
+            <div class="sidebar-credits" style="margin-top: 16px; text-align: center;">
+                <p class="text-sm text-muted" style="font-size: 11px; opacity: 0.75; color: var(--color-text-secondary); line-height: 1.4;">
+                    Created by<br>
+                    <strong style="color: var(--color-text-primary); font-weight: 700;">Thomas Cherickal</strong><br>
+                    <span style="font-size: 10px; font-weight: 500;">Generative AI Consultant</span>
+                </p>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header bar -->
+            <header class="main-header glass-panel">
+                <div class="header-left">
+                    <h1 id="page-title">Dashboard</h1>
+                    <div class="month-selector-wrapper">
+                        <button id="btn-prev-month" class="btn btn-icon btn-ghost"><i data-lucide="chevron-left"></i></button>
+                        <span id="current-month-display" class="current-month-label">June 2026</span>
+                        <button id="btn-next-month" class="btn btn-icon btn-ghost"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button id="btn-quick-log" class="btn btn-primary">
+                        <i data-lucide="plus-circle"></i>
+                        <span>Log Transaction</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <section id="tab-dashboard" class="tab-panel active">
+                <!-- Summary Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card card-income">
+                        <div class="stat-icon-wrapper"><i data-lucide="trending-up"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Monthly Income</span>
+                            <h2 id="stat-total-income" class="stat-value">$0.00</h2>
+                            <span id="stat-income-sub" class="stat-subtitle">From logged transactions</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card card-expense">
+                        <div class="stat-icon-wrapper"><i data-lucide="trending-down"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Monthly Expenses</span>
+                            <h2 id="stat-total-expenses" class="stat-value">$0.00</h2>
+                            <span id="stat-expense-sub" class="stat-subtitle">Includes fixed & variable</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card card-savings">
+                        <div class="stat-icon-wrapper"><i data-lucide="piggy-bank"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Savings Target Progress</span>
+                            <h2 id="stat-savings-progress" class="stat-value">0%</h2>
+                            <span id="stat-savings-sub" class="stat-subtitle">Goal: $0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card card-balance">
+                        <div class="stat-icon-wrapper"><i data-lucide="wallet"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Net Remaining Balance</span>
+                            <h2 id="stat-net-balance" class="stat-value">$0.00</h2>
+                            <span id="stat-balance-sub" class="stat-subtitle">Income - Expense - Savings</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings Goal Progress Bar Detailed -->
+                <div class="savings-progress-detailed glass-panel">
+                    <div class="savings-header-flex">
+                        <h3>Savings Progress Detail</h3>
+                        <span id="savings-progress-ratio">$0.00 / $0.00</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="savings-progress-bar" class="progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                    <p id="savings-status-message" class="text-sm text-muted">Set a savings target in the "Fixed & Savings" tab to start tracking.</p>
+                </div>
+
+                <div class="dashboard-split">
+                    <!-- Left: Recent Logged Actions -->
+                    <div class="split-left glass-panel">
+                        <div class="panel-header-flex">
+                            <h3>Recent Transactions</h3>
+                            <button class="btn btn-ghost btn-sm btn-view-all" data-target-tab="transaction-log">View All</button>
+                        </div>
+                        <div class="recent-list-container">
+                            <div id="recent-transactions-list" class="transactions-list">
+                                <!-- Dynamically populated -->
+                                <div class="empty-state">
+                                    <i data-lucide="receipt" class="empty-icon"></i>
+                                    <p>No transactions logged for this month yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Quick Logging Card -->
+                    <div class="split-right glass-panel">
+                        <h3>Quick Log Entry</h3>
+                        <form id="form-quick-log" class="quick-form">
+                            <div class="form-group-row">
+                                <div class="form-group flex-1">
+                                    <label>Type</label>
+                                    <div class="toggle-group">
+                                        <input type="radio" id="quick-type-expense" name="quick-type" value="expense" checked>
+                                        <label for="quick-type-expense" class="toggle-btn toggle-expense">Expense</label>
+                                        
+                                        <input type="radio" id="quick-type-income" name="quick-type" value="income">
+                                        <label for="quick-type-income" class="toggle-btn toggle-income">Income</label>
+                                    </div>
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label for="quick-date">Date</label>
+                                    <input type="date" id="quick-date" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="quick-description">Description</label>
+                                <input type="text" id="quick-description" placeholder="e.g. Weekly groceries, client payment" required>
+                            </div>
+
+                            <div class="form-group-row">
+                                <div class="form-group flex-1">
+                                    <label for="quick-amount">Amount</label>
+                                    <div class="input-currency-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="number" id="quick-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                                    </div>
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label for="quick-category">Category</label>
+                                    <select id="quick-category" required>
+                                        <!-- Expense Categories -->
+                                        <option value="Food">Food & Dining</option>
+                                        <option value="Housing">Housing/Rent</option>
+                                        <option value="Utilities">Utilities</option>
+                                        <option value="Transportation">Transportation</option>
+                                        <option value="Entertainment">Entertainment</option>
+                                        <option value="Shopping">Shopping</option>
+                                        <option value="Healthcare">Healthcare</option>
+                                        <option value="Education">Education</option>
+                                        <option value="Salary">Salary (Income)</option>
+                                        <option value="Freelance">Freelance (Income)</option>
+                                        <option value="Investment">Investment (Income)</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i data-lucide="plus"></i> Log Transaction
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Fixed & Savings Tab -->
+            <section id="tab-recurring-expenses" class="tab-panel">
+                <div class="settings-grid">
+                    <!-- Savings Requirement Control -->
+                    <div class="settings-card glass-panel">
+                        <div class="settings-card-header">
+                            <i data-lucide="piggy-bank" class="text-amber"></i>
+                            <h3>Monthly Savings Requirement</h3>
+                        </div>
+                        <p class="text-muted text-sm">Define how much you aim to save first every month. This amount is subtracted from your available balance to compute your net spending budget.</p>
+                        <form id="form-savings-requirement" class="settings-form">
+                            <div class="form-group">
+                                <label for="savings-requirement-amount">Monthly Savings Target</label>
+                                <div class="input-currency-wrapper">
+                                    <span class="currency-symbol">$</span>
+                                    <input type="number" id="savings-requirement-amount" step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-block">Save Target</button>
+                        </form>
+                    </div>
+
+                    <!-- Currency Preferences Control -->
+                    <div class="settings-card glass-panel">
+                        <div class="settings-card-header">
+                            <i data-lucide="coins" class="text-indigo"></i>
+                            <h3>Currency Settings</h3>
+                        </div>
+                        <p class="text-muted text-sm">Select your active billing currency. All monetary symbols and dashboard items will update immediately to match the formatting.</p>
+                        <form id="form-currency-settings" class="settings-form">
+                            <div class="form-group">
+                                <label for="settings-currency-select">Active Currency</label>
+                                <select id="settings-currency-select">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                    <option value="CAD">CAD ($)</option>
+                                    <option value="AUD">AUD ($)</option>
+                                    <option value="CNY">CNY (¥)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-block">Apply Currency</button>
+                        </form>
+                    </div>
+
+                    <!-- Add Recurring Expense -->
+                    <div class="settings-card glass-panel">
+                        <div class="settings-card-header">
+                            <i data-lucide="calendar-days" class="text-indigo"></i>
+                            <h3>Add Recurring Expense</h3>
+                        </div>
+                        <p class="text-muted text-sm">Add fixed commitments that renew every month (e.g. Rent, insurance, Netflix). These will be automatically deducted from your monthly budget on startup.</p>
+                        <form id="form-add-recurring" class="settings-form">
+                            <div class="form-group">
+                                <label for="recurring-name">Expense Name</label>
+                                <input type="text" id="recurring-name" placeholder="e.g. Rent, Gym membership" required>
+                            </div>
+                            <div class="form-group-row">
+                                <div class="form-group flex-1">
+                                    <label for="recurring-amount">Monthly Amount</label>
+                                    <div class="input-currency-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="number" id="recurring-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                                    </div>
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label for="recurring-category">Category</label>
+                                    <select id="recurring-category" required>
+                                        <option value="Housing">Housing/Rent</option>
+                                        <option value="Utilities">Utilities</option>
+                                        <option value="Insurance">Insurance</option>
+                                        <option value="Subscription">Subscriptions</option>
+                                        <option value="Debt">Debt/Loans</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-block"><i data-lucide="plus"></i> Add Recurring Expense</button>
+                        </form>
+                    </div>
+
+                    <!-- Add One-Time Planned Expense -->
+                    <div class="settings-card glass-panel">
+                        <div class="settings-card-header">
+                            <i data-lucide="sparkles" class="text-rose"></i>
+                            <h3>Add One-Time planned Expense</h3>
+                        </div>
+                        <p class="text-muted text-sm">Plan single large expenses that occur in specific months (e.g. Car service, flight tickets). They apply only to the selected month.</p>
+                        <form id="form-add-onetime" class="settings-form">
+                            <div class="form-group">
+                                <label for="onetime-name">Expense Name</label>
+                                <input type="text" id="onetime-name" placeholder="e.g. Yearly car tax, Concert tickets" required>
+                            </div>
+                            <div class="form-group-row">
+                                <div class="form-group flex-1">
+                                    <label for="onetime-amount">Amount</label>
+                                    <div class="input-currency-wrapper">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="number" id="onetime-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                                    </div>
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label for="onetime-date">Target Date</label>
+                                    <input type="date" id="onetime-date" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="onetime-category">Category</label>
+                                <select id="onetime-category" required>
+                                    <option value="Travel">Travel & Leisure</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Health">Healthcare</option>
+                                    <option value="Auto">Vehicle & Transport</option>
+                                    <option value="Gifts">Gifts & Charity</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-block"><i data-lucide="plus"></i> Add One-Time Expense</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tables showing current items -->
+                <div class="lists-container-split">
+                    <!-- Recurring Expenses Table -->
+                    <div class="list-panel glass-panel">
+                        <h3>Monthly Recurring Commitments</h3>
+                        <div class="table-scroll-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recurring-list-tbody">
+                                    <!-- Dynamic -->
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No monthly recurring expenses defined.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- One-Time Expenses Table -->
+                    <div class="list-panel glass-panel">
+                        <h3>One-Time Planned Expenses (Active Month)</h3>
+                        <div class="table-scroll-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Date</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="onetime-list-tbody">
+                                    <!-- Dynamic -->
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No planned one-time expenses for this month.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- All Transactions Tab -->
+            <section id="tab-transaction-log" class="tab-panel">
+                <div class="log-manager glass-panel">
+                    <!-- Filter Toolbar -->
+                    <div class="filter-toolbar">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="log-search" placeholder="Search by description...">
+                        </div>
+                        <div class="filter-selectors">
+                            <select id="filter-type">
+                                <option value="all">All Types</option>
+                                <option value="income">Income</option>
+                                <option value="expense">Expense</option>
+                            </select>
+                            <select id="filter-category">
+                                <option value="all">All Categories</option>
+                                <!-- Categories populated dynamically -->
+                            </select>
+                            <button id="btn-reset-filters" class="btn btn-ghost btn-sm">Reset</button>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="table-scroll-container main-log-table">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Type</th>
+                                    <th class="text-right">Amount</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="log-list-tbody">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="log-footer">
+                        <span id="log-count" class="text-sm text-muted">Showing 0 transactions</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports & Analytics Tab -->
+            <section id="tab-reports" class="tab-panel">
+                <div class="reports-control-panel glass-panel">
+                    <h3>Report Scope</h3>
+                    <div class="report-tabs">
+                        <button class="btn btn-outline btn-sm active" data-scope="weekly">Weekly View</button>
+                        <button class="btn btn-outline btn-sm" data-scope="monthly">Monthly View</button>
+                        <button class="btn btn-outline btn-sm" data-scope="annual">Annual View</button>
+                    </div>
+                    <div id="report-scope-display" class="report-scope-label text-sm text-muted mt-2">
+                        <!-- Shows date range for selected scope -->
+                    </div>
+                </div>
+
+                <div class="reports-grid">
+                    <!-- Key Insights Card -->
+                    <div class="report-card glass-panel flex-1">
+                        <h3>Summary & Key Insights</h3>
+                        <div class="insights-container">
+                            <div class="insight-metric-grid">
+                                <div class="metric-box">
+                                    <span class="metric-label">Total Earnings</span>
+                                    <h4 id="report-total-income" class="text-success">$0.00</h4>
+                                </div>
+                                <div class="metric-box">
+                                    <span class="metric-label">Total Outflows</span>
+                                    <h4 id="report-total-expenses" class="text-danger">$0.00</h4>
+                                </div>
+                                <div class="metric-box">
+                                    <span class="metric-label">Net Savings Rate</span>
+                                    <h4 id="report-savings-rate" class="text-amber">0%</h4>
+                                </div>
+                            </div>
+                            <hr class="divider">
+                            <ul id="insights-list" class="insights-list">
+                                <li><i data-lucide="info" class="text-indigo"></i> <span>Add some data to generate automatic insights.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown (Donut) -->
+                    <div class="report-card glass-panel flex-1 chart-card">
+                        <h3>Expense Allocation</h3>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cash Flow Trend Chart -->
+                <div class="report-card glass-panel full-width-chart-card mt-4">
+                    <h3>Cash Flow History</h3>
+                    <div class="chart-container-large">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals & Overlay Backdrops -->
+    
+    <!-- Database Setup Modal removed since fallback cache is the default storage mechanism -->
+
+    <!-- Modal Transaction Form (General Log) -->
+    <div id="modal-transaction" class="modal-backdrop hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3 id="modal-tx-title">Log Transaction</h3>
+                <button class="btn-close-modal btn btn-icon btn-ghost"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-modal-tx">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Transaction Type</label>
+                        <div class="toggle-group">
+                            <input type="radio" id="modal-type-expense" name="modal-type" value="expense" checked>
+                            <label for="modal-type-expense" class="toggle-btn toggle-expense">Expense</label>
+                            
+                            <input type="radio" id="modal-type-income" name="modal-type" value="income">
+                            <label for="modal-type-income" class="toggle-btn toggle-income">Income</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-group flex-1">
+                            <label for="modal-date">Date</label>
+                            <input type="date" id="modal-date" required>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="modal-category">Category</label>
+                            <select id="modal-category" required>
+                                <!-- Categories populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-description">Description</label>
+                        <input type="text" id="modal-description" placeholder="e.g. Uber ride, salary deposit" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-amount">Amount</label>
+                        <div class="input-currency-wrapper">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" id="modal-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Error/Warning Floating Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Main JavaScript Application -->
+    <script src="app.js"></script>
+</body>
+</html>

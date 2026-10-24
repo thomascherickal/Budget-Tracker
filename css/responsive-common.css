@@ -1,0 +1,143 @@
+/**
+ * Sovereign Budget - Common Responsive Design & Anti-Overlap Base
+ * Base variables, safe-area insets, touch ergonomics, and modal containment rules.
+ */
+
+:root {
+    /* Safe Area Inset Variables with fallbacks */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+
+    /* Anti-Overlap Z-Index Hierarchy Scale */
+    --z-base: 1;
+    --z-sidebar: 20;
+    --z-sticky-header: 50;
+    --z-bottom-nav: 100;
+    --z-modal-backdrop: 1000;
+    --z-toast: 1200;
+
+    /* Ergonomic Touch Dimensions */
+    --touch-min-target: 44px;
+    --input-touch-height: 46px;
+    --bottom-nav-height: 60px;
+}
+
+/* Prevent unwanted rubber-band scrolling on touch containers */
+html, body {
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch Ergonomics: Guaranteed minimum touch targets */
+button,
+a,
+input,
+select,
+.nav-item,
+.mobile-nav-item,
+.toggle-btn {
+    touch-action: manipulation;
+}
+
+/* Universal Anti-Overlap Containment for Modals */
+.modal-backdrop {
+    z-index: var(--z-modal-backdrop) !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    padding: calc(16px + var(--safe-area-top)) 16px calc(16px + var(--safe-area-bottom)) 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+}
+
+/* Modal Content Box: strictly fits within viewport and never overflows off-screen */
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 36px);
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.modal-header {
+    flex-shrink: 0;
+}
+
+.modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0; /* Critical flex child overflow fix */
+    padding-right: 4px;
+}
+
+.modal-footer {
+    flex-shrink: 0;
+    margin-top: 12px;
+    padding-top: 8px;
+}
+
+/* Universal Table Scroll Container with Touch Inertia */
+.table-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+    height: 5px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-full);
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+/* Toast Container Elevated Z-Index */
+.toast-container {
+    z-index: var(--z-toast) !important;
+}
+
+/* Currency input wrappers prevent symbol-number overlap */
+.input-currency-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-currency-wrapper .currency-symbol {
+    position: absolute;
+    left: 14px;
+    pointer-events: none;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    z-index: 2;
+}
+
+.input-currency-wrapper input {
+    padding-left: 32px !important;
+    width: 100%;
+}

@@ -1,0 +1,270 @@
+/**
+ * Sovereign Budget - Modular Tablet Stylesheet
+ * Optimized for mid-size touch displays, iPad (portrait & landscape), Galaxy Tabs,
+ * and 769px - 1024px viewport layouts.
+ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* 1. App Container & Sidebar Optimization */
+    .app-container {
+        display: flex;
+        flex-direction: row;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        display: flex !important;
+        width: 230px !important;
+        min-width: 230px !important;
+        padding: 18px 14px !important;
+        gap: 0;
+    }
+
+    .sidebar-header {
+        margin-bottom: 24px !important;
+    }
+
+    .brand-logo {
+        gap: 8px !important;
+    }
+
+    .brand-icon {
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    .brand-name {
+        font-size: 17px !important;
+    }
+
+    .sidebar-nav {
+        gap: 6px !important;
+    }
+
+    .nav-item {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+        border-radius: var(--radius-sm);
+    }
+
+    .nav-item i {
+        width: 16px !important;
+        height: 16px !important;
+    }
+
+    .db-status-container {
+        padding: 12px !important;
+        margin-top: 10px;
+    }
+
+    .db-status-header {
+        margin-bottom: 6px !important;
+    }
+
+    .db-info p {
+        font-size: 10px !important;
+        line-height: 1.35 !important;
+        margin-bottom: 8px !important;
+    }
+
+    .db-actions {
+        gap: 6px !important;
+    }
+
+    .db-actions .btn {
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+    }
+
+    .currency-selector-container {
+        margin-top: 8px !important;
+    }
+
+    .sidebar-credits {
+        margin-top: 10px !important;
+    }
+
+    .sidebar-credits p {
+        font-size: 10px !important;
+    }
+
+    /* 2. Main Workspace Layout on Tablet */
+    .main-content {
+        flex: 1;
+        padding: 16px 20px calc(24px + var(--safe-area-bottom)) 20px !important;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
+    }
+
+    /* Header Bar */
+    .main-header {
+        padding: 12px 18px !important;
+        margin-bottom: 16px !important;
+        gap: 12px !important;
+    }
+
+    #page-title {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+    }
+
+    .month-selector-wrapper {
+        padding: 3px 6px !important;
+    }
+
+    .current-month-label {
+        font-size: 13px !important;
+        min-width: 100px !important;
+    }
+
+    /* 3. Dashboard Tab: 2-Column Balanced Stats Grid */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 14px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .stat-card {
+        padding: 16px 14px !important;
+        gap: 12px !important;
+        min-height: 88px;
+    }
+
+    .stat-icon-wrapper {
+        width: 42px !important;
+        height: 42px !important;
+    }
+
+    .stat-icon-wrapper i {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    .stat-label {
+        font-size: 11px !important;
+        margin-bottom: 3px !important;
+    }
+
+    .stat-value {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        margin-bottom: 3px !important;
+    }
+
+    .stat-subtitle {
+        font-size: 11px !important;
+    }
+
+    /* Dashboard Split: Stacked with clean breathing room */
+    .dashboard-split {
+        grid-template-columns: 1fr !important;
+        gap: 18px !important;
+    }
+
+    .split-left,
+    .split-right {
+        padding: 20px !important;
+    }
+
+    /* 4. Fixed & Savings Tab (Budget Manager) */
+    .settings-grid {
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+        gap: 16px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .settings-card {
+        padding: 18px !important;
+        gap: 12px !important;
+    }
+
+    .settings-card-header h3 {
+        font-size: 16px !important;
+    }
+
+    .lists-container-split {
+        grid-template-columns: 1fr !important;
+        gap: 18px !important;
+    }
+
+    .list-panel {
+        padding: 18px !important;
+    }
+
+    /* 5. All Transactions Log */
+    .filter-toolbar {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+
+    .search-input-wrapper {
+        flex: 1 1 240px !important;
+        min-width: 200px !important;
+        width: auto !important;
+    }
+
+    .filter-selectors {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .filter-selectors select {
+        width: 140px !important;
+        min-height: 42px !important;
+    }
+
+    .main-log-table {
+        max-height: 520px !important;
+    }
+
+    .data-table th, .data-table td {
+        padding: 12px 14px !important;
+        font-size: 13px !important;
+    }
+
+    /* 6. Reports & Analytics Tab */
+    .reports-grid {
+        grid-template-columns: 1fr !important;
+        gap: 18px !important;
+    }
+
+    .insight-metric-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .metric-box {
+        padding: 14px !important;
+    }
+
+    .metric-box h4 {
+        font-size: 18px !important;
+    }
+
+    .chart-container {
+        height: 280px !important;
+        max-height: 300px !important;
+    }
+
+    .chart-container-large {
+        height: 280px !important;
+        max-height: 320px !important;
+    }
+
+    /* 7. Tablet Modals */
+    .modal-content {
+        width: 85% !important;
+        max-width: 540px !important;
+        padding: 24px !important;
+    }
+}

@@ -55,7 +55,9 @@ function createFullMockEnvironment() {
             getContext: () => ({
                 clearRect: () => {},
                 fillText: () => {}
-            })
+            }),
+            appendChild: (child) => child,
+            remove: () => {}
         };
         elements.set(id, el);
         return el;
@@ -81,7 +83,10 @@ function createFullMockEnvironment() {
         'form-add-recurring', 'recurring-name', 'recurring-amount', 'recurring-category',
         'form-add-onetime', 'onetime-name', 'onetime-amount', 'onetime-date', 'onetime-category',
         'tab-dashboard', 'tab-recurring-expenses', 'tab-transaction-log', 'tab-reports',
-        'modal-settings-data', 'modal-confirm-clear', 'modal-transaction'
+        'modal-settings-data', 'modal-confirm-clear', 'modal-transaction', 'modal-storage-guide',
+        'db-status-badge', 'modal-storage-badge', 'modal-storage-info-text',
+        'modal-quota-container', 'modal-quota-text',
+        'btn-sidebar-storage-guide', 'btn-open-storage-guide', 'btn-request-storage-perm'
     ];
 
     ids.forEach(id => createMockElement(id));
@@ -864,5 +869,106 @@ test('Application Orchestrator Suite (app.js Full Lifecycle)', async (t) => {
 
         controller.renderDashboard();
         assert.ok(elements.get('savings-status-message').textContent.includes('Amazing!'));
+    });
+
+    await t.test('should exercise storage status UI and cross-platform guide modal interactions', async () => {
+        const { mockDoc, mockWin, mockStorage, elements } = createFullMockEnvironment();
+        const controller = bootApp(mockWin, mockDoc, mockStorage);
+
+        // 1. Initial status UI update
+        controller.updateStorageStatusUI();
+        assert.strictEqual(elements.get('db-status-badge').textContent, 'Local Cache');
+        assert.strictEqual(elements.get('modal-storage-badge').textContent, 'Local Cache');
+
+        // 2. Storage fallback state
+        controller.AppState.isStorageFallback = true;
+        controller.updateStorageStatusUI();
+        assert.strictEqual(elements.get('db-status-badge').textContent, 'Session Memory');
+        assert.ok(elements.get('modal-storage-info-text').innerHTML.includes('Storage Restricted'));
+
+        // 3. Storage quota display
+        controller.AppState.isStorageFallback = false;
+        controller.AppState.storageQuota = { usage: 1048576, quota: 10485760, percentUsed: 10 };
+        controller.updateStorageStatusUI();
+        assert.strictEqual(elements.get('modal-quota-container').style.display, 'block');
+        assert.ok(elements.get('modal-quota-text').textContent.includes('Storage: 1.00 MB used of 10 MB'));
+
+        globalThis.document = mockDoc;
+        try {
+            // 4. Click sidebar storage guide button
+            elements.get('modal-storage-guide').classList.add('hidden');
+            elements.get('btn-sidebar-storage-guide').click();
+            assert.strictEqual(elements.get('modal-storage-guide').classList.contains('hidden'), false);
+
+            // 5. Click settings modal storage guide button
+            elements.get('modal-storage-guide').classList.add('hidden');
+            elements.get('btn-open-storage-guide').click();
+            assert.strictEqual(elements.get('modal-storage-guide').classList.contains('hidden'), false);
+
+            // 6. Click request storage permission (when granted)
+            mockWin.navigator = {
+                storage: {
+                    persist: async () => true
+                }
+            };
+            elements.get('btn-request-storage-perm').click();
+            await new Promise(resolve => setTimeout(resolve, 50));
+            assert.strictEqual(controller.AppState.storagePersisted, true);
+
+            // 7. Click request storage permission (when denied)
+            mockWin.navigator.storage.persist = async () => false;
+            elements.get('btn-request-storage-perm').click();
+            await new Promise(resolve => setTimeout(resolve, 50));
+        } finally {
+            delete globalThis.document;
+        }
+    });
+
+    await t.test('should boot application in fallback mode and trigger warning toast', async () => {
+        const { mockDoc, elements } = createFullMockEnvironment();
+        const fallbackWin = {
+            localStorage: null,
+            sessionStorage: null,
+            addEventListener: () => {}
+        };
+
+        const controller = bootApp(fallbackWin, mockDoc, null);
+        assert.strictEqual(controller.AppState.isStorageFallback, true);
+        await new Promise(resolve => setTimeout(resolve, 650));
+    });
+
+    await t.test('should handle auto-persistence and quota check on startup', async () => {
+        const { mockDoc } = createFullMockEnvironment();
+        const { createMemoryStorage } = require('../js/storage.js');
+        const persistWin = {
+            localStorage: createMemoryStorage(),
+            navigator: {
+                storage: {
+                    persist: async () => true,
+                    estimate: async () => ({ usage: 5242880, quota: 52428800 }),
+                    persisted: async () => true
+                }
+            },
+            addEventListener: () => {}
+        };
+
+        const controller = bootApp(persistWin, mockDoc, null);
+        await new Promise(resolve => setTimeout(resolve, 50));
+        assert.strictEqual(controller.AppState.storagePersisted, true);
+        assert.ok(controller.AppState.storageQuota);
+        assert.strictEqual(controller.AppState.storageQuota.percentUsed, 10);
+    });
+
+    await t.test('should exercise bootApp default parameter when getUniversalStorage is absent', () => {
+        const { mockDoc } = createFullMockEnvironment();
+        const origUniversal = globalThis.getUniversalStorage;
+        delete globalThis.getUniversalStorage;
+        try {
+            const controller = bootApp(null, mockDoc, null);
+            assert.ok(controller);
+            assert.strictEqual(controller.AppState.storageType, 'custom');
+        } finally {
+            globalThis.getUniversalStorage = origUniversal;
+        }
     });
 });

@@ -14,6 +14,9 @@
     
     <!-- Application Stylesheets -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/responsive-common.css">
+    <link rel="stylesheet" href="css/responsive-tablet.css">
+    <link rel="stylesheet" href="css/responsive-mobile.css">
     
     <!-- Lucide Icons (Local) -->
     <script src="lib/lucide.min.js"></script>
@@ -77,6 +80,9 @@
                     </button>
                     <button id="btn-clear-db" class="btn btn-danger-outline btn-xs btn-block" title="Clear local memory and start from scratch">
                         <i data-lucide="trash-2"></i> <span>Clear Local Memory</span>
+                    </button>
+                    <button id="btn-sidebar-storage-guide" class="btn btn-ghost btn-xs btn-block" style="font-size: 11px; padding: 4px;" title="Cross-platform storage permissions guide">
+                        <i data-lucide="help-circle"></i> <span>Storage Guide</span>
                     </button>
                 </div>
                 <div class="currency-selector-container" style="margin-top: 12px;">
@@ -629,15 +635,22 @@
                 <!-- Status & Autosave Info -->
                 <div class="db-status-container glass-panel" style="margin-top: 0; background: rgba(0, 0, 0, 0.25);">
                     <div class="db-status-header">
-                        <span class="db-status-title">STORAGE STATUS</span>
-                        <span class="badge badge-connected">Local Memory</span>
+                        <span class="db-status-title">STORAGE PERMISSIONS</span>
+                        <span id="modal-storage-badge" class="badge badge-connected">Local Cache</span>
                     </div>
-                    <p class="text-sm text-muted" style="line-height: 1.5; margin-bottom: 8px;">
-                        <strong>Autosave on Exit:</strong> Automatically serializes and exports your data to JSON when closing or leaving the app. Automatically imported from JSON on startup.
+                    <p id="modal-storage-info-text" class="text-sm text-muted" style="line-height: 1.5; margin-bottom: 8px;">
+                        <strong>Cross-Platform Storage:</strong> Auto-saves on change and exports to JSON on exit. Works natively across Linux, Windows, macOS, Android, and iOS.
                     </p>
-                    <div class="save-status" style="justify-content: flex-start; margin-top: 4px;">
-                        <i data-lucide="check-circle" class="save-icon text-success"></i>
-                        <span class="text-muted text-sm">All changes auto-saved locally</span>
+                    <div id="modal-quota-container" class="text-sm text-muted" style="font-size: 11px; margin-bottom: 8px; display: none;">
+                        <span id="modal-quota-text">Quota: Available</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        <button id="btn-request-storage-perm" type="button" class="btn btn-outline btn-xs" title="Request permanent storage permission from browser">
+                            <i data-lucide="shield"></i> <span>Request Persistent Storage</span>
+                        </button>
+                        <button id="btn-open-storage-guide" type="button" class="btn btn-ghost btn-xs" title="Platform-by-platform storage guide">
+                            <i data-lucide="help-circle"></i> <span>Platform Guide</span>
+                        </button>
                     </div>
                 </div>
 
@@ -700,6 +713,92 @@
         </div>
     </div>
 
+    <!-- Modal: Cross-Platform Storage Access Guide -->
+    <div id="modal-storage-guide" class="modal-backdrop hidden" aria-modal="true" role="dialog">
+        <div class="modal-content glass-panel" style="max-width: 620px; max-height: 85vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3><i data-lucide="shield-check" class="text-indigo" style="vertical-align: middle; margin-right: 6px;"></i> Platform Storage Permissions Guide</h3>
+                <button class="btn-close-modal btn btn-icon btn-ghost" aria-label="Close dialog"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="line-height: 1.6; font-size: 13px;">
+                <p class="text-muted" style="margin-bottom: 12px;">
+                    Sovereign Budget is 100% offline-first. Your financial data is saved strictly on your device. Below is how to ensure unrestricted local storage permission on your platform:
+                </p>
+
+                <!-- Platform: Linux (Zorin / Ubuntu / Debian) -->
+                <div class="glass-panel" style="margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.25);">
+                    <h4 style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--color-text-primary);">
+                        <i data-lucide="terminal" class="text-indigo"></i> Linux (Zorin OS 17/18, Ubuntu, Debian, Fedora)
+                    </h4>
+                    <p class="text-sm text-muted" style="margin-bottom: 6px;">
+                        When launched via direct <code>file:///</code> protocol, Chromium-based browsers may restrict storage. Use our one-click zero-dependency runner or launcher:
+                    </p>
+                    <div style="background: rgba(0,0,0,0.5); padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-bottom: 6px; user-select: all;">
+                        ./start.sh
+                    </div>
+                    <p class="text-sm text-muted" style="margin-bottom: 6px;">Or run an instant native local server via Python or Node:</p>
+                    <div style="background: rgba(0,0,0,0.5); padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-bottom: 6px; user-select: all;">
+                        python3 -m http.server 8000
+                    </div>
+                    <div style="background: rgba(0,0,0,0.5); padding: 8px 10px; border-radius: 6px; font-family: monospace; font-size: 12px; user-select: all;">
+                        node serve.js
+                    </div>
+                </div>
+
+                <!-- Platform: Windows -->
+                <div class="glass-panel" style="margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.25);">
+                    <h4 style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--color-text-primary);">
+                        <i data-lucide="monitor" class="text-info"></i> Windows (10 / 11) - Chrome, Edge &amp; Firefox
+                    </h4>
+                    <p class="text-sm text-muted" style="margin-bottom: 6px;">
+                        Double-click <code>start.bat</code> in the repository folder, or in Edge/Chrome:
+                    </p>
+                    <ul class="text-sm text-muted" style="padding-left: 20px; margin-bottom: 6px;">
+                        <li>Open <strong>Settings &gt; Cookies and site permissions &gt; Manage and delete cookies and site data</strong>.</li>
+                        <li>Ensure <strong>"Allow sites to save and read cookie data"</strong> is turned <strong>ON</strong>.</li>
+                        <li>Ensure <strong>"Block third-party cookies"</strong> does not block localhost/file origin.</li>
+                    </ul>
+                </div>
+
+                <!-- Platform: macOS -->
+                <div class="glass-panel" style="margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.25);">
+                    <h4 style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--color-text-primary);">
+                        <i data-lucide="laptop" class="text-accent"></i> macOS (Safari &amp; Chrome)
+                    </h4>
+                    <ul class="text-sm text-muted" style="padding-left: 20px; margin-bottom: 6px;">
+                        <li><strong>Safari:</strong> In Safari Preferences &gt; Advanced, enable <em>"Show Develop menu in menu bar"</em>. In the Develop menu, verify <em>"Disable Local File Restrictions"</em> if opening via <code>file://</code>.</li>
+                        <li>Or run <code>./start.sh</code> in Terminal to open unrestricted via local host.</li>
+                    </ul>
+                </div>
+
+                <!-- Platform: Android -->
+                <div class="glass-panel" style="margin-bottom: 12px; padding: 12px; background: rgba(0,0,0,0.25);">
+                    <h4 style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--color-text-primary);">
+                        <i data-lucide="smartphone" class="text-success"></i> Android (Chrome, Samsung Internet, Firefox)
+                    </h4>
+                    <ul class="text-sm text-muted" style="padding-left: 20px; margin-bottom: 6px;">
+                        <li>Open browser <strong>Settings &gt; Site settings &gt; Storage / Device storage</strong> &gt; set to <strong>Allowed</strong>.</li>
+                        <li><strong>PWA Installation:</strong> Tap menu (three dots) &gt; <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong> for dedicated, persistent sandboxed storage.</li>
+                    </ul>
+                </div>
+
+                <!-- Platform: iOS -->
+                <div class="glass-panel" style="margin-bottom: 6px; padding: 12px; background: rgba(0,0,0,0.25);">
+                    <h4 style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--color-text-primary);">
+                        <i data-lucide="tablet" class="text-warning"></i> iOS &amp; iPadOS (Safari)
+                    </h4>
+                    <ul class="text-sm text-muted" style="padding-left: 20px; margin-bottom: 6px;">
+                        <li>Open device <strong>Settings &gt; Safari &gt; Advanced</strong>: Ensure <em>"Block All Cookies"</em> is <strong>OFF</strong>.</li>
+                        <li>Avoid Private Browsing if persistent multi-day local caching is needed, or tap Share &gt; <strong>"Add to Home Screen"</strong> to run as a standalone PWA.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-close-modal">Got it</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Confirm Clear Local Memory -->
     <div id="modal-confirm-clear" class="modal-backdrop hidden" aria-modal="true" role="dialog">
         <div class="modal-content glass-panel" style="max-width: 440px;">
@@ -743,6 +842,7 @@
     <script src="js/financials.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/responsive.js"></script>
     <!-- Main Application Orchestrator -->
     <script src="app.js"></script>
 </body>

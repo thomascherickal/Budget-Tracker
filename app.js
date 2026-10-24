@@ -23,6 +23,9 @@ if (typeof require !== 'undefined') {
     if (typeof AppUI === 'undefined') {
         try { Object.assign(globalThis, require('./js/ui.js')); } catch (e) {}
     }
+    if (typeof ResponsiveLayout === 'undefined') {
+        try { Object.assign(globalThis, require('./js/responsive.js')); } catch (e) {}
+    }
 }
 
 // Application State Container
@@ -57,12 +60,19 @@ const AppState = {
  * @param {function} [promptFn]
  * @returns {object|null}
  */
-function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (typeof document !== 'undefined' ? document : null), storage = (typeof localStorage !== 'undefined' ? localStorage : null), promptFn = null) {
+function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (typeof document !== 'undefined' ? document : null), storage = null, promptFn = null) {
     const activeDoc = doc || (typeof document !== 'undefined' ? document : null);
     if (!activeDoc) return null;
 
     const activeWin = win || (typeof window !== 'undefined' ? window : null);
-    const activeStorage = storage || (typeof localStorage !== 'undefined' ? localStorage : (activeWin && activeWin.localStorage ? activeWin.localStorage : null));
+    const storageEngine = (typeof getUniversalStorage === 'function')
+        ? getUniversalStorage(activeWin, storage)
+        : { storage: storage || null, type: 'custom', isFallback: false, persistent: true };
+    const activeStorage = storageEngine.storage;
+    AppState.storageType = storageEngine.type;
+    AppState.isStorageFallback = storageEngine.isFallback;
+    AppState.storagePersisted = storageEngine.persistent;
+    AppState.storageQuota = null;
     const activePrompt = promptFn || (activeWin && typeof activeWin.prompt === 'function' ? activeWin.prompt.bind(activeWin) : (typeof prompt === 'function' ? prompt : () => null));
 
     // Initialize Lucide Icons
@@ -115,6 +125,52 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
 
     function setupExitAutosave() {
         setupExitAutosaveListeners(activeWin, activeDoc, saveData);
+    }
+
+    function updateStorageStatusUI() {
+        const badgeEl = activeDoc.getElementById('db-status-badge');
+        const modalBadgeEl = activeDoc.getElementById('modal-storage-badge');
+        const modalInfoEl = activeDoc.getElementById('modal-storage-info-text');
+
+        if (AppState.isStorageFallback) {
+            if (badgeEl) {
+                badgeEl.textContent = 'Session Memory';
+                badgeEl.className = 'badge badge-fallback';
+                badgeEl.title = 'Storage restricted. Operating in session memory mode.';
+            }
+            if (modalBadgeEl) {
+                modalBadgeEl.textContent = 'Session Memory';
+                modalBadgeEl.className = 'badge badge-fallback';
+            }
+            if (modalInfoEl) {
+                modalInfoEl.innerHTML = '<strong>Storage Restricted:</strong> Running in ephemeral session memory mode. Use <em>Export Backup</em> to prevent data loss upon browser restart, or consult the <em>Platform Guide</em> to allow storage.';
+            }
+        } else {
+            const label = AppState.storagePersisted ? 'Local Cache' : 'Local Cache';
+            if (badgeEl) {
+                badgeEl.textContent = label;
+                badgeEl.className = 'badge badge-connected';
+                badgeEl.title = 'Persistent offline browser storage active.';
+            }
+            if (modalBadgeEl) {
+                modalBadgeEl.textContent = label;
+                modalBadgeEl.className = 'badge badge-connected';
+            }
+            if (modalInfoEl) {
+                modalInfoEl.innerHTML = '<strong>Cross-Platform Storage:</strong> Auto-saves on change and exports to JSON on exit. Operating natively with local persistence.';
+            }
+        }
+
+        if (AppState.storageQuota) {
+            const quotaContainer = activeDoc.getElementById('modal-quota-container');
+            const quotaText = activeDoc.getElementById('modal-quota-text');
+            if (quotaContainer && quotaText) {
+                quotaContainer.style.display = 'block';
+                const usageMB = (AppState.storageQuota.usage / (1024 * 1024)).toFixed(2);
+                const quotaMB = (AppState.storageQuota.quota / (1024 * 1024)).toFixed(0);
+                quotaText.textContent = `Storage: ${usageMB} MB used of ${quotaMB} MB quota (${AppState.storageQuota.percentUsed}%)`;
+            }
+        }
     }
 
     function clearLocalMemory() {
@@ -751,6 +807,10 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
             x.classList.toggle('active', x.getAttribute('data-tab') === tabId);
         });
         renderActiveTab();
+        if (typeof scrollToContentTop === 'function') {
+            const main = activeDoc.querySelector('.main-content');
+            scrollToContentTop(main);
+        }
     }
 
     activeDoc.querySelectorAll('.nav-item').forEach(btn => {
@@ -827,6 +887,30 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
 
     const btnConfirmClearAction = activeDoc.getElementById('btn-confirm-clear-action');
     if (btnConfirmClearAction) btnConfirmClearAction.addEventListener('click', clearLocalMemory);
+
+    const btnSidebarStorageGuide = activeDoc.getElementById('btn-sidebar-storage-guide');
+    if (btnSidebarStorageGuide) {
+        btnSidebarStorageGuide.addEventListener('click', () => openModal('modal-storage-guide'));
+    }
+
+    const btnOpenStorageGuide = activeDoc.getElementById('btn-open-storage-guide');
+    if (btnOpenStorageGuide) {
+        btnOpenStorageGuide.addEventListener('click', () => openModal('modal-storage-guide'));
+    }
+
+    const btnRequestStoragePerm = activeDoc.getElementById('btn-request-storage-perm');
+    if (btnRequestStoragePerm) {
+        btnRequestStoragePerm.addEventListener('click', async () => {
+            const granted = await requestPersistentStorage(activeWin);
+            if (granted) {
+                AppState.storagePersisted = true;
+                showToast('Persistent storage permission granted by browser!', 'success');
+            } else {
+                showToast('Persistent permission not granted or already active.', 'info');
+            }
+            updateStorageStatusUI();
+        });
+    }
 
     activeDoc.querySelectorAll('.modal-backdrop').forEach(modal => {
         modal.addEventListener('click', (e) => {
@@ -1126,6 +1210,31 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
 
         updateCurrencySymbolsUI(AppState.currencySymbol);
         renderActiveTab();
+        updateStorageStatusUI();
+
+        if (typeof setupResponsiveListeners === 'function') {
+            setupResponsiveListeners(activeWin, activeDoc);
+        }
+
+        if (AppState.isStorageFallback) {
+            setTimeout(() => showToast('Browser storage restricted. Running in session memory mode. Use "Export Backup" to save data.', 'warning'), 600);
+        } else if (activeWin && activeWin.navigator && activeWin.navigator.storage && typeof activeWin.navigator.storage.persist === 'function') {
+            requestPersistentStorage(activeWin).then(granted => {
+                if (granted) {
+                    AppState.storagePersisted = true;
+                    updateStorageStatusUI();
+                }
+            }).catch(() => {});
+        }
+
+        if (activeWin && activeWin.navigator && activeWin.navigator.storage) {
+            checkStorageQuota(activeWin).then(info => {
+                if (info) {
+                    AppState.storageQuota = info;
+                    updateStorageStatusUI();
+                }
+            }).catch(() => {});
+        }
 
         let resizeTimer;
         if (activeWin && typeof activeWin.addEventListener === 'function') {
@@ -1172,6 +1281,7 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
         handleCurrencyChange,
         formatCurrencyDisplay,
         updateMonthDisplay,
+        updateStorageStatusUI,
         init
     };
 }
@@ -1190,6 +1300,7 @@ if (typeof module !== 'undefined' && module.exports) {
     const financials = require('./js/financials.js');
     const storage = require('./js/storage.js');
     const ui = require('./js/ui.js');
+    const responsive = require('./js/responsive.js');
 
     module.exports = {
         AppState,
@@ -1222,6 +1333,11 @@ if (typeof module !== 'undefined' && module.exports) {
         createEncryptedBackup: storage.createEncryptedBackup,
         parseImportContent: storage.parseImportContent,
         setupExitAutosaveListeners: storage.setupExitAutosaveListeners,
+        createMemoryStorage: storage.createMemoryStorage,
+        isStorageAvailable: storage.isStorageAvailable,
+        getUniversalStorage: storage.getUniversalStorage,
+        requestPersistentStorage: storage.requestPersistentStorage,
+        checkStorageQuota: storage.checkStorageQuota,
         // UI
         showToast: ui.showToast,
         showSaveIndicator: ui.showSaveIndicator,
@@ -1231,6 +1347,17 @@ if (typeof module !== 'undefined' && module.exports) {
         syncFormCategoryOptions: ui.syncFormCategoryOptions,
         calculateNextMonth: ui.calculateNextMonth,
         formatMonthLabel: ui.formatMonthLabel,
+        // Responsive Layout Engine
+        ResponsiveLayout: responsive.ResponsiveLayout,
+        BREAKPOINTS: responsive.BREAKPOINTS,
+        getScreenMode: responsive.getScreenMode,
+        isMobileView: responsive.isMobileView,
+        isTabletView: responsive.isTabletView,
+        isDesktopView: responsive.isDesktopView,
+        isSmallMobileView: responsive.isSmallMobileView,
+        scrollToContentTop: responsive.scrollToContentTop,
+        syncScreenModeDOM: responsive.syncScreenModeDOM,
+        setupResponsiveListeners: responsive.setupResponsiveListeners,
         // Constants
         ...constants
     };

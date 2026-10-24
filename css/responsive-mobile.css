@@ -1,0 +1,493 @@
+/**
+ * Sovereign Budget - Modular Mobile Stylesheet
+ * Optimized for smartphones, phablets, and viewport widths <= 768px.
+ * Guarantees zero component overlaps, safe area compatibility, and 44px touch targets.
+ */
+
+@media (max-width: 768px) {
+    /* 1. App Container & Viewport Management */
+    .app-container {
+        flex-direction: column !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    /* Hide desktop sidebar entirely */
+    .sidebar {
+        display: none !important;
+    }
+
+    /* Main Workspace scroll container: ample bottom clearance to avoid bottom nav overlap */
+    .main-content {
+        flex: 1 !important;
+        padding: 10px 12px calc(76px + var(--safe-area-bottom)) 12px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-y: contain !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 2. Sleek Sticky Mobile Header */
+    .main-header {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        padding: 10px 12px !important;
+        margin-bottom: 12px !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: var(--z-sticky-header) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        border-radius: var(--radius-md) !important;
+    }
+
+    .header-left {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+
+    .mobile-brand-pill {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .mobile-brand-pill .brand-icon {
+        width: 22px !important;
+        height: 22px !important;
+        color: var(--color-accent) !important;
+    }
+
+    .mobile-brand-pill .brand-name {
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        background: linear-gradient(135deg, #fff 40%, var(--color-accent) 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        display: none;
+    }
+
+    #page-title {
+        display: none !important;
+    }
+
+    .month-selector-wrapper {
+        padding: 2px 4px !important;
+        gap: 2px !important;
+        min-width: 0 !important;
+        flex-shrink: 1 !important;
+    }
+
+    .current-month-label {
+        font-size: 12px !important;
+        min-width: 76px !important;
+        text-align: center !important;
+    }
+
+    .month-selector-wrapper .btn-icon {
+        padding: 6px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+    }
+
+    .month-selector-wrapper .btn-icon i {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    .header-right {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .btn-header-settings {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        padding: 8px !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--color-text-secondary) !important;
+        border: 1px solid var(--color-border) !important;
+        background: rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .btn-header-settings:hover,
+    .btn-header-settings:active {
+        color: var(--color-accent) !important;
+        border-color: var(--color-accent) !important;
+    }
+
+    #btn-quick-log {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 40px !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+    }
+
+    /* 3. Fixed Mobile Bottom Navigation Bar */
+    .mobile-bottom-nav {
+        display: flex !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: var(--z-bottom-nav) !important;
+        background: rgba(13, 17, 30, 0.95) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        border-top: 1px solid var(--color-border) !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-bottom: none !important;
+        border-radius: 0 !important;
+        padding: 6px 4px calc(6px + var(--safe-area-bottom)) 4px !important;
+        justify-content: space-around !important;
+        align-items: center !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45) !important;
+    }
+
+    .mobile-nav-item {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 3px !important;
+        padding: 4px 6px !important;
+        min-width: 48px !important;
+        min-height: 44px !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--color-text-muted) !important;
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        text-transform: capitalize !important;
+        transition: all var(--transition-fast) !important;
+        -webkit-tap-highlight-color: transparent !important;
+        user-select: none !important;
+    }
+
+    .mobile-nav-item i {
+        width: 18px !important;
+        height: 18px !important;
+        transition: transform var(--transition-fast), color var(--transition-fast) !important;
+    }
+
+    .mobile-nav-item:hover,
+    .mobile-nav-item:focus {
+        color: var(--color-text-primary) !important;
+    }
+
+    .mobile-nav-item.active {
+        color: var(--color-accent) !important;
+    }
+
+    .mobile-nav-item.active i {
+        transform: scale(1.1) !important;
+        filter: drop-shadow(0 0 6px var(--color-accent-glow)) !important;
+    }
+
+    /* 4. Anti-Overlap: Lifted Floating Toast Notifications */
+    .toast-container {
+        position: fixed !important;
+        bottom: calc(72px + var(--safe-area-bottom)) !important;
+        left: 14px !important;
+        right: 14px !important;
+        z-index: var(--z-toast) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        pointer-events: none !important;
+    }
+
+    .toast {
+        pointer-events: auto !important;
+        width: 100% !important;
+        max-width: 440px !important;
+        margin: 0 auto !important;
+        padding: 10px 14px !important;
+        font-size: 12px !important;
+    }
+
+    /* 5. Anti-Overlap: Mobile Modals */
+    .modal-backdrop {
+        padding: 14px 10px calc(14px + var(--safe-area-bottom)) 10px !important;
+    }
+
+    .modal-content {
+        width: 100% !important;
+        max-width: 480px !important;
+        max-height: calc(100dvh - 28px) !important;
+        padding: 18px 14px !important;
+        border-radius: var(--radius-lg) !important;
+    }
+
+    .modal-header h3 {
+        font-size: 17px !important;
+    }
+
+    /* 6. Form Controls & Touch Ergonomics (iOS auto-zoom prevention) */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select {
+        font-size: 16px !important;
+        padding: 11px 14px !important;
+        min-height: 46px !important;
+        border-radius: var(--radius-sm) !important;
+        box-sizing: border-box !important;
+    }
+
+    .form-group-row {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    .toggle-group {
+        height: 46px !important;
+    }
+
+    .toggle-btn {
+        font-size: 14px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* 7. Dashboard Layout on Mobile */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .stat-card {
+        padding: 12px 10px !important;
+        gap: 8px !important;
+        min-height: 82px;
+    }
+
+    .stat-icon-wrapper {
+        width: 36px !important;
+        height: 36px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .stat-icon-wrapper i {
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    .stat-label {
+        font-size: 10px !important;
+        letter-spacing: 0.02em !important;
+        margin-bottom: 2px !important;
+    }
+
+    .stat-value {
+        font-size: 16px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .stat-subtitle {
+        font-size: 10px !important;
+        line-height: 1.2 !important;
+    }
+
+    .savings-progress-detailed {
+        padding: 14px !important;
+        margin-bottom: 14px !important;
+    }
+
+    .savings-header-flex h3 {
+        font-size: 14px !important;
+    }
+
+    #savings-progress-ratio {
+        font-size: 12px !important;
+    }
+
+    .dashboard-split {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+    }
+
+    .split-left,
+    .split-right {
+        padding: 16px !important;
+    }
+
+    .split-right h3,
+    .panel-header-flex h3 {
+        font-size: 16px !important;
+    }
+
+    /* 8. Budget Manager (Fixed & Savings) on Mobile */
+    .settings-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+        margin-bottom: 14px !important;
+    }
+
+    .settings-card {
+        padding: 16px !important;
+        gap: 12px !important;
+    }
+
+    .settings-card-header h3 {
+        font-size: 16px !important;
+    }
+
+    .lists-container-split {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+    }
+
+    .list-panel {
+        padding: 16px !important;
+    }
+
+    .list-panel h3 {
+        font-size: 15px !important;
+    }
+
+    /* 9. All Transactions Log on Mobile */
+    .log-manager {
+        padding: 14px !important;
+    }
+
+    .filter-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .search-input-wrapper {
+        width: 100% !important;
+    }
+
+    .filter-selectors {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr auto !important;
+        gap: 8px !important;
+    }
+
+    .filter-selectors select {
+        width: 100% !important;
+    }
+
+    .main-log-table {
+        max-height: 440px !important;
+    }
+
+    .data-table th, .data-table td {
+        padding: 10px 12px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+    }
+
+    .btn-delete-row {
+        padding: 8px 10px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* 10. Reports & Analytics on Mobile */
+    .reports-control-panel {
+        padding: 14px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .report-tabs {
+        width: 100% !important;
+        display: flex !important;
+        gap: 6px !important;
+    }
+
+    .report-tabs .btn {
+        flex: 1 !important;
+        padding: 8px 6px !important;
+        font-size: 11px !important;
+        min-height: 40px !important;
+    }
+
+    .reports-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+    }
+
+    .report-card {
+        padding: 16px !important;
+    }
+
+    .insight-metric-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    .metric-box {
+        padding: 12px !important;
+    }
+
+    .chart-container {
+        max-width: 100% !important;
+        height: 250px !important;
+    }
+
+    .chart-container-large {
+        height: 240px !important;
+    }
+}
+
+/* Mid-range Mobile (480px to 768px): Show brand name */
+@media (min-width: 480px) and (max-width: 768px) {
+    .mobile-brand-pill .brand-name {
+        display: inline !important;
+    }
+}
+
+/* Extra-small Mobile (< 420px): Single-column stats, ultra-compact button */
+@media (max-width: 420px) {
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    .header-right #btn-quick-log span {
+        display: none !important;
+    }
+
+    .header-right #btn-quick-log {
+        padding: 8px 10px !important;
+    }
+
+    .filter-selectors {
+        grid-template-columns: 1fr !important;
+    }
+
+    .filter-selectors #btn-reset-filters {
+        width: 100% !important;
+    }
+}

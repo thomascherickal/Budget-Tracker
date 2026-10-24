@@ -12,6 +12,7 @@ const testFiles = [
     path.join(__dirname, 'financials.test.js'),
     path.join(__dirname, 'storage.test.js'),
     path.join(__dirname, 'ui.test.js'),
+    path.join(__dirname, 'responsive.test.js'),
     path.join(__dirname, 'integration.test.js'),
     path.join(__dirname, 'app.test.js')
 ];
@@ -148,6 +149,7 @@ function generateMarkdownReport(code, output) {
         'Financial Calculations Engine Suite (`tests/financials.test.js`)',
         'Storage Persistence & Autosave Suite (`tests/storage.test.js`)',
         'UI Helpers & DOM Sync Suite (`tests/ui.test.js`)',
+        'Responsive Layout Engine Suite (`tests/responsive.test.js`)',
         'End-to-End Integration Lifecycle Suite (`tests/integration.test.js`)'
     ];
     suiteNames.forEach(suite => {

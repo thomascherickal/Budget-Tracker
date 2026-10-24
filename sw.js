@@ -1,8 +1,11 @@
-const CACHE_NAME = 'sovereign-budget-v5';
+const CACHE_NAME = 'sovereign-budget-v7';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './css/responsive-common.css',
+  './css/responsive-tablet.css',
+  './css/responsive-mobile.css',
   './app.js',
   './js/constants.js',
   './js/currencies.js',
@@ -10,6 +13,7 @@ const ASSETS = [
   './js/financials.js',
   './js/storage.js',
   './js/ui.js',
+  './js/responsive.js',
   './favicon.jpg',
   './manifest.json',
   './lib/lucide.min.js',

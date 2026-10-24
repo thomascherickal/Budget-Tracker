@@ -41,15 +41,66 @@ Sovereign Budget is packaged as a **Progressive Web App (PWA)**. This enables yo
 
 ---
 
-## 💻 Running Locally
+## 💻 Running Locally on Any Platform
 
-To run the application locally:
-1. Double-click the `index.html` file in your file explorer to open it directly in any modern browser (e.g. Chrome, Firefox, Safari, Edge).
-2. Alternatively, you can serve the directory using a simple command line server if you prefer:
-   ```bash
-   python3 -m http.server 8000
-   ```
-   and navigate to `http://localhost:8000`.
+Sovereign Budget is built with zero external dependencies. To ensure unrestricted, persistent local storage access across all browsers and operating systems, you can launch it using any of the following methods:
+
+### 1. One-Click Launchers (Recommended)
+- **Linux & macOS**:
+  ```bash
+  ./start.sh
+  ```
+  *(Automatically detects Node.js `serve.js`, Python 3 `http.server`, or Python 2, and opens your default browser with full local storage access).*
+- **Windows (10 / 11)**:
+  Double-click `start.bat` in the repository folder, or run:
+  ```cmd
+  start.bat
+  ```
+- **Cross-Platform Zero-Dependency Node Server**:
+  ```bash
+  node serve.js
+  ```
+  Runs on port 8000 on Linux, macOS, and Windows and automatically launches the browser.
+
+### 2. Standard Local HTTP Server
+```bash
+python3 -m http.server 8000
+```
+Then navigate to `http://localhost:8000` in any web browser.
+
+### 3. Direct File Opening (`file://`) & Fallback Protection
+Double-click `index.html` to open directly via the `file://` protocol. If your browser blocks local file storage access by policy (e.g., in strict Chrome sandbox modes or incognito), Sovereign Budget's **Universal Resilient Storage Engine** automatically switches to an in-memory session store so you never experience crashes. You can save your work anytime using **Export Backup (JSON)** or run `./start.sh` for full persistent storage.
+
+---
+
+## 🛡️ Cross-Platform Storage Access & Permissions Guide
+
+If your browser restricts `localStorage` access, follow the platform-specific instructions below:
+
+### 🐧 Linux (Zorin OS 17/18, Ubuntu, Debian, Fedora, Arch)
+- **Chrome / Chromium / Brave**: When opening directly via `file:///`, Chromium blocks origin-bound storage by default. Run `./start.sh` or `python3 -m http.server 8000` to run on `localhost`.
+- **Alternative (Direct Chrome Flag)**: Launch Chromium with:
+  ```bash
+  google-chrome --allow-file-access-from-files index.html
+  ```
+- **Firefox**: In `about:config`, verify that `privacy.file_unique_origin` is set appropriately or use `http://localhost:8000`.
+
+### 🪟 Windows (10 / 11 - Edge, Chrome, Firefox)
+- Double-click `start.bat` to launch with full origin permissions.
+- In Edge or Chrome: Open **Settings > Cookies and site permissions > Manage and delete cookies and site data**. Ensure **"Allow sites to save and read cookie data"** is enabled.
+- In Firefox: Open **Settings > Privacy & Security > Cookies and Site Data > Standard**.
+
+### 🍎 macOS (Safari & Chrome)
+- In Safari: Open **Safari > Settings > Advanced**, enable **"Show features for web developers"**. In the **Develop** menu, check **"Disable Local File Restrictions"** if opening via `file://`.
+- Alternatively, run `./start.sh` in Terminal to serve via local HTTP.
+
+### 🤖 Android (Chrome, Samsung Internet, Firefox)
+- Open browser **Settings > Site settings > Storage / Device storage** and verify permissions are **Allowed**.
+- Tap menu (three dots) > **"Install app"** or **"Add to Home Screen"** to run as a dedicated PWA with isolated, durable local storage.
+
+### 🍏 iOS & iPadOS (Safari)
+- Open device **Settings > Safari > Advanced**: Ensure **"Block All Cookies"** is turned **OFF**.
+- Avoid Private Browsing for multi-session budget persistence, or tap Share > **"Add to Home Screen"** to install as a standalone PWA.
 
 ---
 

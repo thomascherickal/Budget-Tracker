@@ -15,7 +15,12 @@ const {
     createPlainJsonExport,
     createEncryptedBackup,
     parseImportContent,
-    setupExitAutosaveListeners
+    setupExitAutosaveListeners,
+    createMemoryStorage,
+    isStorageAvailable,
+    getUniversalStorage,
+    requestPersistentStorage,
+    checkStorageQuota
 } = require('../js/storage.js');
 
 const { encryptData, decryptData } = require('../js/crypto.js');
@@ -245,6 +250,183 @@ test('Storage Module Suite', async (t) => {
         setupExitAutosaveListeners(null, null, () => {});
     });
 
+    await t.test('should exercise createMemoryStorage adapter methods and properties', () => {
+        const mem = createMemoryStorage();
+        assert.strictEqual(mem.isMemoryStorage, true);
+        assert.strictEqual(mem.length, 0);
+        assert.strictEqual(mem.getItem('not_found'), null);
+
+        mem.setItem('alpha', '100');
+        mem.setItem('beta', '200');
+        assert.strictEqual(mem.length, 2);
+        assert.strictEqual(mem.getItem('alpha'), '100');
+        assert.strictEqual(mem.getItem('beta'), '200');
+        assert.strictEqual(mem.key(0), 'alpha');
+        assert.strictEqual(mem.key(1), 'beta');
+        assert.strictEqual(mem.key(99), null);
+
+        mem.removeItem('alpha');
+        assert.strictEqual(mem.length, 1);
+        assert.strictEqual(mem.getItem('alpha'), null);
+
+        mem.clear();
+        assert.strictEqual(mem.length, 0);
+        assert.strictEqual(mem.getItem('beta'), null);
+    });
+
+    await t.test('should verify isStorageAvailable under diverse window environments', () => {
+        // Null or undefined window
+        assert.strictEqual(isStorageAvailable('localStorage', null), false);
+
+        // Window missing target storage or methods
+        assert.strictEqual(isStorageAvailable('localStorage', {}), false);
+        assert.strictEqual(isStorageAvailable('localStorage', { localStorage: {} }), false);
+
+        // Functional storage
+        const validStore = createMockStorage();
+        assert.strictEqual(isStorageAvailable('localStorage', { localStorage: validStore }), true);
+
+        // Storage where setItem throws SecurityError
+        const throwingStore = {
+            setItem: () => { throw new Error('SecurityError: Access is denied for this document'); },
+            getItem: () => null,
+            removeItem: () => {}
+        };
+        assert.strictEqual(isStorageAvailable('localStorage', { localStorage: throwingStore }), false);
+
+        // Storage where probe does not return expected value
+        const mismatchStore = {
+            setItem: () => {},
+            getItem: () => 'wrong_val',
+            removeItem: () => {}
+        };
+        assert.strictEqual(isStorageAvailable('localStorage', { localStorage: mismatchStore }), false);
+    });
+
+    await t.test('should resolve universal storage with proper cascade priority', () => {
+        // 1. Custom storage provided
+        const custom = createMockStorage();
+        const customRes = getUniversalStorage(null, custom);
+        assert.strictEqual(customRes.type, 'custom');
+        assert.strictEqual(customRes.storage, custom);
+        assert.strictEqual(customRes.isFallback, false);
+        assert.strictEqual(customRes.persistent, true);
+
+        // 2. Native localStorage available
+        const localMock = createMockStorage();
+        const localWin = { localStorage: localMock };
+        const localRes = getUniversalStorage(localWin);
+        assert.strictEqual(localRes.type, 'localStorage');
+        assert.strictEqual(localRes.isFallback, false);
+        assert.strictEqual(localRes.persistent, true);
+
+        // 3. Native localStorage unavailable, sessionStorage available
+        const sessionMock = createMockStorage();
+        const sessionWin = {
+            localStorage: null,
+            sessionStorage: sessionMock
+        };
+        const sessionRes = getUniversalStorage(sessionWin);
+        assert.strictEqual(sessionRes.type, 'sessionStorage');
+        assert.strictEqual(sessionRes.isFallback, true);
+        assert.strictEqual(sessionRes.persistent, false);
+
+        // 4. Neither available -> fallback to MemoryStorage
+        const emptyWin = {};
+        const memRes = getUniversalStorage(emptyWin);
+        assert.strictEqual(memRes.type, 'memory');
+        assert.strictEqual(memRes.isFallback, true);
+        assert.strictEqual(memRes.persistent, false);
+        assert.strictEqual(memRes.storage.isMemoryStorage, true);
+
+        // 5. Default window parameter in headless/Node environment
+        const defaultRes = getUniversalStorage();
+        assert.strictEqual(defaultRes.type, 'memory');
+        assert.strictEqual(defaultRes.isFallback, true);
+    });
+
+    await t.test('should request persistent storage permission via StorageManager API', async () => {
+        // Window lacks navigator.storage
+        assert.strictEqual(await requestPersistentStorage(null), false);
+        assert.strictEqual(await requestPersistentStorage({}), false);
+        assert.strictEqual(await requestPersistentStorage({ navigator: {} }), false);
+
+        // navigator.storage.persist resolves true
+        const winGranted = {
+            navigator: {
+                storage: {
+                    persist: async () => true
+                }
+            }
+        };
+        assert.strictEqual(await requestPersistentStorage(winGranted), true);
+
+        // navigator.storage.persist resolves false
+        const winDenied = {
+            navigator: {
+                storage: {
+                    persist: async () => false
+                }
+            }
+        };
+        assert.strictEqual(await requestPersistentStorage(winDenied), false);
+
+        // navigator.storage.persist throws
+        const winError = {
+            navigator: {
+                storage: {
+                    persist: async () => { throw new Error('Permission denied'); }
+                }
+            }
+        };
+        assert.strictEqual(await requestPersistentStorage(winError), false);
+    });
+
+    await t.test('should check storage quota and persistence state safely', async () => {
+        // Missing navigator.storage returns null
+        assert.strictEqual(await checkStorageQuota(null), null);
+        assert.strictEqual(await checkStorageQuota({}), null);
+
+        // Successful estimate & persisted check
+        const winSuccess = {
+            navigator: {
+                storage: {
+                    estimate: async () => ({ usage: 5242880, quota: 104857600 }),
+                    persisted: async () => true
+                }
+            }
+        };
+        const quotaInfo = await checkStorageQuota(winSuccess);
+        assert.ok(quotaInfo);
+        assert.strictEqual(quotaInfo.usage, 5242880);
+        assert.strictEqual(quotaInfo.quota, 104857600);
+        assert.strictEqual(quotaInfo.percentUsed, 5);
+        assert.strictEqual(quotaInfo.persisted, true);
+
+        // Quota is 0
+        const winZeroQuota = {
+            navigator: {
+                storage: {
+                    estimate: async () => ({ usage: 0, quota: 0 }),
+                    persisted: async () => false
+                }
+            }
+        };
+        const zeroInfo = await checkStorageQuota(winZeroQuota);
+        assert.ok(zeroInfo);
+        assert.strictEqual(zeroInfo.percentUsed, 0);
+
+        // Storage manager throws error
+        const winThrowing = {
+            navigator: {
+                storage: {
+                    estimate: async () => { throw new Error('Quota error'); }
+                }
+            }
+        };
+        assert.strictEqual(await checkStorageQuota(winThrowing), null);
+    });
+
     await t.test('should attach properties to window in browser environment', () => {
         const fakeWindow = {};
         globalThis.window = fakeWindow;
@@ -256,6 +438,11 @@ test('Storage Module Suite', async (t) => {
         assert.strictEqual(typeof fakeWindow.saveDataToStorage, 'function');
         assert.strictEqual(typeof fakeWindow.loadDataFromStorage, 'function');
         assert.strictEqual(typeof fakeWindow.clearLocalStorageKeys, 'function');
+        assert.strictEqual(typeof fakeWindow.createMemoryStorage, 'function');
+        assert.strictEqual(typeof fakeWindow.isStorageAvailable, 'function');
+        assert.strictEqual(typeof fakeWindow.getUniversalStorage, 'function');
+        assert.strictEqual(typeof fakeWindow.requestPersistentStorage, 'function');
+        assert.strictEqual(typeof fakeWindow.checkStorageQuota, 'function');
 
         delete globalThis.window;
     });

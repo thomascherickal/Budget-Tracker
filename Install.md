@@ -54,8 +54,10 @@ If you prefer to run the application purely offline on a laptop or desktop compu
    - Alternatively, download the source code as a ZIP file from your GitHub repository page and extract the files to a folder on your drive.
 
 2. **Launch the Application**:
-   - Navigate to the project directory in your file explorer.
-   - Double-click the **`index.html`** file.
-   - The app will load directly in your default browser. Since all resources (HTML, CSS, JS, and graphics) are contained in the local folder, it will work instantly.
+   - **Linux & macOS**: Run `./start.sh` in the terminal for instant local storage access.
+   - **Windows**: Double-click `start.bat`.
+   - **Node.js**: Run `node serve.js` on any OS.
+   - Alternatively, double-click **`index.html`** to open directly via `file:///`. If local storage is restricted by your browser policy, the app automatically runs in session memory fallback mode without crashing.
 
-*Note: Browsers disable PWA installation flags when running files directly from the local disk using the `file:///` protocol. If you want to install it as a standalone app on your local machine without GitHub Pages, serve the directory locally (e.g. `python3 -m http.server`) and navigate to `http://localhost:8000` to trigger PWA installation.*
+*Note: Browsers restrict PWA installation flags and service workers when running files directly from the local disk using the `file:///` protocol. Running `./start.sh` or `node serve.js` grants full local storage and enables PWA installation.*
+

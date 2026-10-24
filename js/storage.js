@@ -226,6 +226,152 @@ function setupExitAutosaveListeners(win, doc, onSaveCallback) {
     }
 }
 
+/**
+ * Creates an in-memory Storage-compatible fallback adapter.
+ * Supports standard getItem, setItem, removeItem, clear, key, and length.
+ * @returns {Storage|object}
+ */
+function createMemoryStorage() {
+    const store = new Map();
+    return {
+        getItem: (key) => (store.has(String(key)) ? store.get(String(key)) : null),
+        setItem: (key, value) => { store.set(String(key), String(value)); },
+        removeItem: (key) => { store.delete(String(key)); },
+        clear: () => { store.clear(); },
+        key: (index) => {
+            const keys = Array.from(store.keys());
+            return keys[index] !== undefined ? keys[index] : null;
+        },
+        get length() {
+            return store.size;
+        },
+        isMemoryStorage: true
+    };
+}
+
+/**
+ * Safely tests whether a Web Storage mechanism (localStorage/sessionStorage)
+ * is available, enabled, and writable without throwing SecurityError or QuotaExceededError.
+ * @param {'localStorage'|'sessionStorage'} type
+ * @param {Window|object} [win]
+ * @returns {boolean}
+ */
+function isStorageAvailable(type, win = (typeof window !== 'undefined' ? window : null)) {
+    if (!win) return false;
+    try {
+        const storage = win[type];
+        if (!storage || typeof storage.setItem !== 'function' || typeof storage.getItem !== 'function') {
+            return false;
+        }
+        const probeKey = '__sovereign_storage_probe__';
+        storage.setItem(probeKey, '1');
+        const readVal = storage.getItem(probeKey);
+        storage.removeItem(probeKey);
+        return readVal === '1';
+    } catch (_) {
+        return false;
+    }
+}
+
+/**
+ * Returns a universal, crash-proof storage instance suitable for any platform.
+ * Gracefully cascades: Custom Storage -> localStorage -> sessionStorage -> MemoryStorage.
+ * @param {Window|object} [win]
+ * @param {Storage|object} [customStorage]
+ * @returns {{ storage: Storage|object, type: 'custom'|'localStorage'|'sessionStorage'|'memory', isFallback: boolean, persistent: boolean }}
+ */
+function getUniversalStorage(win = (typeof window !== 'undefined' ? window : null), customStorage = null) {
+    if (customStorage) {
+        return {
+            storage: customStorage,
+            type: 'custom',
+            isFallback: false,
+            persistent: true
+        };
+    }
+
+    const activeWin = win || (typeof window !== 'undefined' ? window : null);
+
+    // 1. Try native localStorage
+    if (isStorageAvailable('localStorage', activeWin)) {
+        return {
+            storage: activeWin.localStorage,
+            type: 'localStorage',
+            isFallback: false,
+            persistent: true
+        };
+    }
+
+    // 2. Try native sessionStorage (e.g. if localStorage is blocked by policy/file:// but sessionStorage is allowed)
+    if (isStorageAvailable('sessionStorage', activeWin)) {
+        return {
+            storage: activeWin.sessionStorage,
+            type: 'sessionStorage',
+            isFallback: true,
+            persistent: false
+        };
+    }
+
+    // 3. Fallback to resilient in-memory storage adapter
+    return {
+        storage: createMemoryStorage(),
+        type: 'memory',
+        isFallback: true,
+        persistent: false
+    };
+}
+
+/**
+ * Requests durable persistent storage permission from the browser/OS via StorageManager API.
+ * Prevents automated cache evictions under low disk space on mobile and desktop platforms.
+ * @param {Window|object} [win]
+ * @returns {Promise<boolean>} Whether persistent storage was granted
+ */
+async function requestPersistentStorage(win = (typeof window !== 'undefined' ? window : null)) {
+    const activeWin = win || (typeof window !== 'undefined' ? window : null);
+    if (!activeWin || !activeWin.navigator || !activeWin.navigator.storage || typeof activeWin.navigator.storage.persist !== 'function') {
+        return false;
+    }
+    try {
+        const isPersisted = await activeWin.navigator.storage.persist();
+        return Boolean(isPersisted);
+    } catch (_) {
+        return false;
+    }
+}
+
+/**
+ * Checks current storage quota and persistence state if supported by the browser.
+ * @param {Window|object} [win]
+ * @returns {Promise<{ usage: number, quota: number, percentUsed: number, persisted: boolean }|null>}
+ */
+async function checkStorageQuota(win = (typeof window !== 'undefined' ? window : null)) {
+    const activeWin = win || (typeof window !== 'undefined' ? window : null);
+    if (!activeWin || !activeWin.navigator || !activeWin.navigator.storage) {
+        return null;
+    }
+    try {
+        const storageManager = activeWin.navigator.storage;
+        let estimate = null;
+        let persisted = false;
+
+        if (typeof storageManager.estimate === 'function') {
+            estimate = await storageManager.estimate();
+        }
+        if (typeof storageManager.persisted === 'function') {
+            persisted = await storageManager.persisted();
+        }
+
+        if (estimate) {
+            const usage = estimate.usage || 0;
+            const quota = estimate.quota || 0;
+            const percentUsed = quota > 0 ? Number(((usage / quota) * 100).toFixed(2)) : 0;
+            return { usage, quota, percentUsed, persisted };
+        }
+    } catch (_) {}
+    return null;
+}
+
 // Universal export pattern
 const AppStorage = {
     getCleanDatabaseObject,
@@ -236,7 +382,12 @@ const AppStorage = {
     createPlainJsonExport,
     createEncryptedBackup,
     parseImportContent,
-    setupExitAutosaveListeners
+    setupExitAutosaveListeners,
+    createMemoryStorage,
+    isStorageAvailable,
+    getUniversalStorage,
+    requestPersistentStorage,
+    checkStorageQuota
 };
 
 if (typeof window !== 'undefined') {
@@ -250,8 +401,14 @@ if (typeof window !== 'undefined') {
     window.createEncryptedBackup = createEncryptedBackup;
     window.parseImportContent = parseImportContent;
     window.setupExitAutosaveListeners = setupExitAutosaveListeners;
+    window.createMemoryStorage = createMemoryStorage;
+    window.isStorageAvailable = isStorageAvailable;
+    window.getUniversalStorage = getUniversalStorage;
+    window.requestPersistentStorage = requestPersistentStorage;
+    window.checkStorageQuota = checkStorageQuota;
 }
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AppStorage;
 }
+

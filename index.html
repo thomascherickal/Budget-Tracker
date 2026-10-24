@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="description" content="A secure, local-first monthly budget tracker with a rich dark professional layout, visual analytics, and local file storage.">
     <meta name="author" content="Thomas Cherickal, Generative AI Consultant">
     <title>Sovereign Budget - Professional Personal Finance</title>
@@ -66,14 +66,17 @@
                     <span id="db-status-badge" class="badge badge-connected">Local Cache</span>
                 </div>
                 <div id="db-info" class="db-info">
-                    <p class="db-text-muted">Data auto-saves locally in browser cache. Export files for manual backup.</p>
+                    <p class="db-text-muted">Auto-saves on change &amp; exports to JSON on exit. Auto-imported on startup.</p>
                 </div>
                 <div class="db-actions">
-                    <button id="btn-export-db" class="btn btn-primary btn-xs btn-block">
+                    <button id="btn-export-db" class="btn btn-primary btn-xs btn-block" title="Export JSON backup">
                         <i data-lucide="download"></i> <span>Export Backup</span>
                     </button>
-                    <button id="btn-import-db" class="btn btn-outline btn-xs btn-block">
+                    <button id="btn-import-db" class="btn btn-outline btn-xs btn-block" title="Import JSON backup file">
                         <i data-lucide="upload"></i> <span>Import Backup</span>
+                    </button>
+                    <button id="btn-clear-db" class="btn btn-danger-outline btn-xs btn-block" title="Clear local memory and start from scratch">
+                        <i data-lucide="trash-2"></i> <span>Clear Local Memory</span>
                     </button>
                 </div>
                 <div class="currency-selector-container" style="margin-top: 12px;">
@@ -87,6 +90,16 @@
                         <option value="CAD">CAD ($)</option>
                         <option value="AUD">AUD ($)</option>
                         <option value="CNY">CNY (¥)</option>
+                        <option value="CHF">CHF (CHF)</option>
+                        <option value="BRL">BRL (R$)</option>
+                        <option value="ZAR">ZAR (R)</option>
+                        <option value="SGD">SGD ($)</option>
+                        <option value="AED">AED (د.إ)</option>
+                        <option value="SAR">SAR (ر.س)</option>
+                        <option value="MXN">MXN ($)</option>
+                        <option value="KRW">KRW (₩)</option>
+                        <option value="SEK">SEK (kr)</option>
+                        <option value="NOK">NOK (kr)</option>
                     </select>
                 </div>
                 <div id="save-status" class="save-status hidden">
@@ -110,14 +123,21 @@
             <!-- Header bar -->
             <header class="main-header glass-panel">
                 <div class="header-left">
+                    <div class="mobile-brand-pill">
+                        <i data-lucide="shield-check" class="brand-icon"></i>
+                        <span class="brand-name">SovereignBudget</span>
+                    </div>
                     <h1 id="page-title">Dashboard</h1>
                     <div class="month-selector-wrapper">
-                        <button id="btn-prev-month" class="btn btn-icon btn-ghost"><i data-lucide="chevron-left"></i></button>
+                        <button id="btn-prev-month" class="btn btn-icon btn-ghost" aria-label="Previous Month"><i data-lucide="chevron-left"></i></button>
                         <span id="current-month-display" class="current-month-label">June 2026</span>
-                        <button id="btn-next-month" class="btn btn-icon btn-ghost"><i data-lucide="chevron-right"></i></button>
+                        <button id="btn-next-month" class="btn btn-icon btn-ghost" aria-label="Next Month"><i data-lucide="chevron-right"></i></button>
                     </div>
                 </div>
                 <div class="header-right">
+                    <button id="btn-mobile-settings" class="btn btn-icon btn-ghost btn-header-settings" title="Data Management &amp; Settings" aria-label="Data and Settings">
+                        <i data-lucide="database"></i>
+                    </button>
                     <button id="btn-quick-log" class="btn btn-primary">
                         <i data-lucide="plus-circle"></i>
                         <span>Log Transaction</span>
@@ -514,6 +534,30 @@
                 </div>
             </section>
         </main>
+
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav class="mobile-bottom-nav glass-panel" aria-label="Mobile Navigation">
+            <button class="mobile-nav-item active" data-tab="dashboard">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="mobile-nav-item" data-tab="recurring-expenses">
+                <i data-lucide="repeat"></i>
+                <span>Fixed</span>
+            </button>
+            <button class="mobile-nav-item" data-tab="transaction-log">
+                <i data-lucide="list-filter"></i>
+                <span>History</span>
+            </button>
+            <button class="mobile-nav-item" data-tab="reports">
+                <i data-lucide="pie-chart"></i>
+                <span>Reports</span>
+            </button>
+            <button class="mobile-nav-item" id="mobile-nav-settings">
+                <i data-lucide="database"></i>
+                <span>Data</span>
+            </button>
+        </nav>
     </div>
 
     <!-- Modals & Overlay Backdrops -->
@@ -574,10 +618,132 @@
         </div>
     </div>
 
+    <!-- Modal Settings & Data Management (Optimized for Mobile & Quick Access) -->
+    <div id="modal-settings-data" class="modal-backdrop hidden" aria-modal="true" role="dialog">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3><i data-lucide="database" class="text-indigo" style="vertical-align: middle; margin-right: 6px;"></i> Data &amp; Settings</h3>
+                <button class="btn-close-modal btn btn-icon btn-ghost" aria-label="Close dialog"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Status & Autosave Info -->
+                <div class="db-status-container glass-panel" style="margin-top: 0; background: rgba(0, 0, 0, 0.25);">
+                    <div class="db-status-header">
+                        <span class="db-status-title">STORAGE STATUS</span>
+                        <span class="badge badge-connected">Local Memory</span>
+                    </div>
+                    <p class="text-sm text-muted" style="line-height: 1.5; margin-bottom: 8px;">
+                        <strong>Autosave on Exit:</strong> Automatically serializes and exports your data to JSON when closing or leaving the app. Automatically imported from JSON on startup.
+                    </p>
+                    <div class="save-status" style="justify-content: flex-start; margin-top: 4px;">
+                        <i data-lucide="check-circle" class="save-icon text-success"></i>
+                        <span class="text-muted text-sm">All changes auto-saved locally</span>
+                    </div>
+                </div>
+
+                <!-- Currency Selection -->
+                <div class="form-group">
+                    <label for="modal-currency-select">Active Currency</label>
+                    <select id="modal-currency-select">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="INR">INR (₹)</option>
+                        <option value="JPY">JPY (¥)</option>
+                        <option value="CAD">CAD ($)</option>
+                        <option value="AUD">AUD ($)</option>
+                        <option value="CNY">CNY (¥)</option>
+                        <option value="CHF">CHF (CHF)</option>
+                        <option value="BRL">BRL (R$)</option>
+                        <option value="ZAR">ZAR (R)</option>
+                        <option value="SGD">SGD ($)</option>
+                        <option value="AED">AED (د.إ)</option>
+                        <option value="SAR">SAR (ر.س)</option>
+                        <option value="MXN">MXN ($)</option>
+                        <option value="KRW">KRW (₩)</option>
+                        <option value="SEK">SEK (kr)</option>
+                        <option value="NOK">NOK (kr)</option>
+                    </select>
+                </div>
+
+                <!-- Backup & Restore Actions -->
+                <div class="form-group" style="gap: 10px;">
+                    <label>Data Management (JSON)</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button id="modal-btn-export-plain" class="btn btn-primary btn-sm">
+                            <i data-lucide="download"></i> <span>Export Backup</span>
+                        </button>
+                        <button id="modal-btn-import-db" class="btn btn-outline btn-sm">
+                            <i data-lucide="upload"></i> <span>Import Backup</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clear Local Memory Section -->
+                <div style="margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--color-border);">
+                    <button id="modal-btn-clear-db" class="btn btn-danger-outline btn-sm btn-block">
+                        <i data-lucide="trash-2"></i> <span>Clear Local Memory &amp; Reset</span>
+                    </button>
+                </div>
+
+                <!-- Credits in Modal -->
+                <div style="text-align: center; margin-top: 8px;">
+                    <p class="text-sm text-muted" style="font-size: 11px;">
+                        Created by <strong>Thomas Cherickal</strong><br>
+                        <span>Generative AI Consultant</span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-close-modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirm Clear Local Memory -->
+    <div id="modal-confirm-clear" class="modal-backdrop hidden" aria-modal="true" role="dialog">
+        <div class="modal-content glass-panel" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 style="color: var(--color-danger); display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="alert-triangle"></i> Clear Local Memory?
+                </h3>
+                <button class="btn-close-modal btn btn-icon btn-ghost" aria-label="Close dialog"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 14px; line-height: 1.6; color: var(--color-text-primary);">
+                    Are you sure you want to clear local memory and start from scratch?
+                </p>
+                <div class="alert alert-danger" style="background: var(--color-danger-bg); border: 1px solid var(--color-danger-border); color: #fecdd3; padding: 12px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5; display: flex; gap: 10px; align-items: flex-start;">
+                    <i data-lucide="alert-circle" style="color: var(--color-danger); flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px;"></i>
+                    <span>This will permanently delete all logged transactions, recurring commitments, one-time planned expenses, and reset the tracker. <strong>This cannot be undone.</strong></span>
+                </div>
+                <p class="text-sm text-muted" style="margin-top: 4px;">
+                    We recommend downloading a JSON backup first so you never lose your records.
+                </p>
+                <button type="button" id="btn-clear-export-first" class="btn btn-outline btn-sm btn-block" style="margin-top: 6px;">
+                    <i data-lucide="download"></i> <span>Download JSON Backup First</span>
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-close-modal">Cancel</button>
+                <button type="button" id="btn-confirm-clear-action" class="btn btn-danger">
+                    <i data-lucide="trash-2"></i> <span>Clear &amp; Start Fresh</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Error/Warning Floating Toast -->
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Main JavaScript Application -->
+    <!-- Modular Application Engine Scripts -->
+    <script src="js/constants.js"></script>
+    <script src="js/currencies.js"></script>
+    <script src="js/crypto.js"></script>
+    <script src="js/financials.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/ui.js"></script>
+    <!-- Main Application Orchestrator -->
     <script src="app.js"></script>
 </body>
 </html>

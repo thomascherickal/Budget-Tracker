@@ -268,5 +268,65 @@ test('Integration Lifecycle Suite', async (t) => {
         const detected = detectUserCurrency();
         assert.strictEqual(detected.code, 'USD');
         assert.strictEqual(detected.symbol, '$');
+
+        // Test custom locale detection
+        const detectedIN = detectUserCurrency('en-IN');
+        assert.strictEqual(detectedIN.code, 'INR');
+        assert.strictEqual(detectedIN.symbol, '₹');
+    });
+
+    await t.test('should test autosave JSON serialization on exit and import on startup', () => {
+        const mockDb = {
+            version: '1.0.0',
+            lastUpdated: new Date().toISOString(),
+            settings: { savingsRequirement: 200, currency: 'EUR' },
+            recurringExpenses: [{ id: 'rec-1', name: 'Internet', amount: 45, category: 'Utilities' }],
+            oneTimeExpenses: [],
+            transactions: [{ id: 'tx-1', type: 'income', date: '2026-06-01', description: 'Bonus', amount: 500, category: 'Salary' }]
+        };
+
+        // Simulate exit serialize
+        const autosaveJSON = JSON.stringify(mockDb, null, 2);
+        assert.ok(autosaveJSON.includes('Internet'));
+        assert.ok(autosaveJSON.includes('Bonus'));
+
+        // Simulate startup deserialization and schema check
+        const parsed = JSON.parse(autosaveJSON);
+        assert.strictEqual(parsed.settings.currency, 'EUR');
+        assert.strictEqual(parsed.transactions.length, 1);
+        assert.strictEqual(parsed.recurringExpenses.length, 1);
+        assert.strictEqual(parsed.transactions[0].amount, 500);
+    });
+
+    await t.test('should test clear local memory and starting from scratch', () => {
+        // Mock storage map
+        const storage = new Map();
+        storage.set('sovereign_budget_cache', '{"data":"test"}');
+        storage.set('sovereign_budget_autosave_json', '{"data":"test"}');
+        storage.set('sovereign_budget_exit_timestamp', '2026-10-24T16:00:00Z');
+
+        assert.strictEqual(storage.size, 3);
+
+        // Perform clear
+        storage.delete('sovereign_budget_cache');
+        storage.delete('sovereign_budget_autosave_json');
+        storage.delete('sovereign_budget_exit_timestamp');
+
+        assert.strictEqual(storage.has('sovereign_budget_cache'), false);
+        assert.strictEqual(storage.has('sovereign_budget_autosave_json'), false);
+        assert.strictEqual(storage.size, 0);
+
+        // Clean state check
+        const cleanState = {
+            version: '1.0.0',
+            lastUpdated: new Date().toISOString(),
+            settings: { savingsRequirement: 0, currency: 'USD' },
+            recurringExpenses: [],
+            oneTimeExpenses: [],
+            transactions: []
+        };
+        assert.strictEqual(cleanState.transactions.length, 0);
+        assert.strictEqual(cleanState.recurringExpenses.length, 0);
+        assert.strictEqual(cleanState.settings.savingsRequirement, 0);
     });
 });

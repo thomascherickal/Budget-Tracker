@@ -56,6 +56,7 @@ function createFullMockEnvironment() {
                 clearRect: () => {},
                 fillText: () => {}
             }),
+            querySelectorAll: () => [],
             appendChild: (child) => child,
             remove: () => {}
         };
@@ -171,6 +172,9 @@ function createFullMockEnvironment() {
             if (sel === '.btn-delete-tx') {
                 return [delTxBtn];
             }
+            if (sel === '.btn-clear-input') {
+                return clearButtons;
+            }
             return [];
         },
         createElement: (tag) => {
@@ -212,6 +216,27 @@ function createFullMockEnvironment() {
     delOtBtn.setAttribute('data-id', 'one-test');
     const delTxBtn = createMockElement('del-tx');
     delTxBtn.setAttribute('data-id', 'tx-test');
+
+    const delRecentTxBtn = createMockElement('del-recent-tx');
+    delRecentTxBtn.setAttribute('data-id', 'tx-recent-test');
+    if (elements.get('recent-transactions-list')) {
+        elements.get('recent-transactions-list').querySelectorAll = (sel) => {
+            if (sel === '.btn-delete-tx') return [delRecentTxBtn];
+            return [];
+        };
+    }
+
+    // Pre-create mock text field clear buttons
+    const clearButtons = ['quick-description', 'quick-amount', 'log-search'].map(inputId => {
+        const inputEl = elements.get(inputId);
+        const btn = createMockElement(`btn-clear-${inputId}`, 'btn-clear-input');
+        const wrapper = createMockElement(`wrapper-${inputId}`, 'input-clearable-wrapper');
+        wrapper.querySelector = (s) => (s === 'input' ? inputEl : null);
+        btn.closest = () => wrapper;
+        btn.parentElement = wrapper;
+        inputEl.parentElement = wrapper;
+        return btn;
+    });
 
     // Mock Window
     const winListeners = new Map();
@@ -256,7 +281,9 @@ function createFullMockEnvironment() {
         modalTypeRadios,
         delRecBtn,
         delOtBtn,
-        delTxBtn
+        delTxBtn,
+        delRecentTxBtn,
+        clearButtons
     };
 }
 
@@ -970,5 +997,55 @@ test('Application Orchestrator Suite (app.js Full Lifecycle)', async (t) => {
         } finally {
             globalThis.getUniversalStorage = origUniversal;
         }
+    });
+
+    await t.test('should wire clear buttons on text fields and delete entries when clicked', () => {
+        const { mockDoc, elements, clearButtons } = createFullMockEnvironment();
+        const controller = bootApp(null, mockDoc, null);
+
+        const descInput = elements.get('quick-description');
+        descInput.value = 'Organic apples';
+        descInput.dispatchEvent({ type: 'input' });
+
+        const descClearBtn = clearButtons[0];
+        assert.strictEqual(descClearBtn.classList.contains('has-value'), true);
+
+        // Click delete button
+        descClearBtn.click();
+        assert.strictEqual(descInput.value, '');
+        assert.strictEqual(descClearBtn.classList.contains('has-value'), false);
+
+        // Test clearing search input triggers search filter update
+        const searchInput = elements.get('log-search');
+        searchInput.value = 'groceries';
+        searchInput.dispatchEvent({ type: 'input' });
+
+        const searchClearBtn = clearButtons[2];
+        searchClearBtn.click();
+        assert.strictEqual(searchInput.value, '');
+    });
+
+    await t.test('should delete transaction from dashboard recent list via X button and via deleteTransaction', () => {
+        const { mockDoc, delRecentTxBtn } = createFullMockEnvironment();
+        const controller = bootApp(null, mockDoc, null);
+
+        controller.AppState.db.transactions = [
+            { id: 'tx-recent-test', date: controller.AppState.currentMonth + '-05', amount: 75.5, type: 'expense', category: 'Shopping', description: 'Headphones' },
+            { id: 'tx-other', date: controller.AppState.currentMonth + '-10', amount: 120, type: 'income', category: 'Freelance', description: 'Consulting' }
+        ];
+
+        // Render dashboard to wire delete button
+        controller.renderDashboard();
+
+        // Click delete X button from dashboard recent list
+        delRecentTxBtn.click();
+        assert.strictEqual(controller.AppState.db.transactions.length, 1);
+        assert.strictEqual(controller.AppState.db.transactions[0].id, 'tx-other');
+
+        // Test deleteTransaction edge cases
+        assert.strictEqual(controller.deleteTransaction(null), false);
+        assert.strictEqual(controller.deleteTransaction(''), false);
+        assert.strictEqual(controller.deleteTransaction('tx-other'), true);
+        assert.strictEqual(controller.AppState.db.transactions.length, 0);
     });
 });

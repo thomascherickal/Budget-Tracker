@@ -8,7 +8,10 @@ const {
     openModal,
     closeAllModals,
     updateCurrencySymbolsUI,
-    syncFormCategoryOptions
+    syncFormCategoryOptions,
+    updateClearButtonState,
+    clearInputField,
+    setupInputClearButtons
 } = require('../js/ui.js');
 
 test('UI Helpers Suite', async (t) => {
@@ -130,6 +133,35 @@ test('UI Helpers Suite', async (t) => {
 
         assert.ok(lucideIconsCreated > 0);
 
+        // Test updateClearButtonState directly
+        const testInput = { value: 'Rent payment', parentElement: null };
+        const testBtn = createMockElement('test-clear-btn');
+        updateClearButtonState(testInput, testBtn);
+        assert.strictEqual(testBtn.classList.contains('has-value'), true);
+
+        testInput.value = '   ';
+        updateClearButtonState(testInput, testBtn);
+        assert.strictEqual(testBtn.classList.contains('has-value'), false);
+
+        // Test clearInputField directly
+        testInput.value = 'Groceries';
+        let focused = false;
+        testInput.focus = () => { focused = true; };
+        const eventsFired = [];
+        testInput.dispatchEvent = (e) => { eventsFired.push(e.type); };
+        updateClearButtonState(testInput, testBtn);
+        assert.strictEqual(testBtn.classList.contains('has-value'), true);
+
+        const clearedResult = clearInputField(testInput, testBtn);
+        assert.strictEqual(clearedResult, true);
+        assert.strictEqual(testInput.value, '');
+        assert.strictEqual(testBtn.classList.contains('has-value'), false);
+        assert.ok(eventsFired.includes('input'));
+        assert.ok(eventsFired.includes('change'));
+        assert.strictEqual(focused, true);
+
+        assert.strictEqual(clearInputField(null), false);
+
         // Clean up global document and lucide
         delete globalThis.document;
         delete globalThis.lucide;
@@ -146,6 +178,9 @@ test('UI Helpers Suite', async (t) => {
         assert.strictEqual(openModal('missing-modal'), undefined);
         assert.strictEqual(syncFormCategoryOptions('income', 'missing-select'), undefined);
         assert.strictEqual(updateCurrencySymbolsUI('$'), undefined);
+        assert.strictEqual(updateClearButtonState(null), undefined);
+        assert.strictEqual(clearInputField(null), false);
+        assert.strictEqual(setupInputClearButtons(null), 0);
 
         delete globalThis.document;
     });
@@ -158,6 +193,94 @@ test('UI Helpers Suite', async (t) => {
         assert.strictEqual(closeAllModals(), undefined);
         assert.strictEqual(updateCurrencySymbolsUI('$'), undefined);
         assert.strictEqual(syncFormCategoryOptions('income', 'cat'), undefined);
+        assert.strictEqual(updateClearButtonState(null), undefined);
+        assert.strictEqual(clearInputField(null), false);
+        assert.strictEqual(setupInputClearButtons(), 0);
+    });
+
+    await t.test('should wire clear buttons, handle clicking, typing, and Escape key in setupInputClearButtons', () => {
+        const listeners = new Map();
+        function createInteractiveElement(tag = 'div') {
+            const classSet = new Set();
+            const elListeners = new Map();
+            const el = {
+                tagName: tag.toUpperCase(),
+                value: '',
+                classList: {
+                    add: (c) => classSet.add(c),
+                    remove: (c) => classSet.delete(c),
+                    contains: (c) => classSet.has(c),
+                    toggle: (c, val) => (val ? classSet.add(c) : classSet.delete(c))
+                },
+                parentElement: null,
+                closest: () => el.parentElement,
+                querySelector: (s) => (s === 'input' ? el._childInput : null),
+                addEventListener: (evt, fn) => {
+                    if (!elListeners.has(evt)) elListeners.set(evt, []);
+                    elListeners.get(evt).push(fn);
+                },
+                dispatchEvent: (eventObj) => {
+                    const fns = elListeners.get(eventObj.type) || [];
+                    fns.forEach(fn => fn({
+                        ...eventObj,
+                        preventDefault: () => { el._prevented = true; },
+                        currentTarget: el,
+                        target: el
+                    }));
+                },
+                focus: () => { el._focused = true; }
+            };
+            return el;
+        }
+
+        const wrapper = createInteractiveElement('div');
+        const input = createInteractiveElement('input');
+        const btn = createInteractiveElement('button');
+        btn.classList.add('btn-clear-input');
+
+        wrapper._childInput = input;
+        input.parentElement = wrapper;
+        btn.parentElement = wrapper;
+
+        const fakeContainer = {
+            querySelectorAll: (sel) => (sel === '.btn-clear-input' ? [btn] : [])
+        };
+
+        const count = setupInputClearButtons(fakeContainer);
+        assert.strictEqual(count, 1);
+
+        // Already initialized buttons are skipped on re-run
+        assert.strictEqual(setupInputClearButtons(fakeContainer), 0);
+
+        // Test typing in input
+        input.value = 'Freelance invoice';
+        input.dispatchEvent({ type: 'input' });
+        assert.strictEqual(btn.classList.contains('has-value'), true);
+
+        // Test pointerdown / mousedown calls preventDefault
+        btn._prevented = false;
+        btn.dispatchEvent({ type: 'mousedown' });
+        assert.strictEqual(btn._prevented, true);
+
+        btn._prevented = false;
+        btn.dispatchEvent({ type: 'touchstart' });
+        assert.strictEqual(btn._prevented, true);
+
+        // Test clicking button deletes entry
+        btn.dispatchEvent({ type: 'click' });
+        assert.strictEqual(input.value, '');
+        assert.strictEqual(btn.classList.contains('has-value'), false);
+        assert.strictEqual(input._focused, true);
+
+        // Test Escape key inside input
+        input.value = 'Temporary input';
+        input.dispatchEvent({ type: 'change' });
+        assert.strictEqual(btn.classList.contains('has-value'), true);
+
+        input._focused = false;
+        input.dispatchEvent({ type: 'keydown', key: 'Escape' });
+        assert.strictEqual(input.value, '');
+        assert.strictEqual(btn.classList.contains('has-value'), false);
     });
 
     await t.test('should attach properties to window in browser environment', () => {
@@ -170,6 +293,9 @@ test('UI Helpers Suite', async (t) => {
         assert.ok(fakeWindow.AppUI);
         assert.strictEqual(typeof fakeWindow.showToast, 'function');
         assert.strictEqual(typeof fakeWindow.calculateNextMonth, 'function');
+        assert.strictEqual(typeof fakeWindow.clearInputField, 'function');
+        assert.strictEqual(typeof fakeWindow.updateClearButtonState, 'function');
+        assert.strictEqual(typeof fakeWindow.setupInputClearButtons, 'function');
 
         delete globalThis.window;
     });

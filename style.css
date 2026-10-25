@@ -655,9 +655,9 @@ button {
 .tx-right {
     text-align: right;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
 }
 .tx-val {
     font-size: 15px;
@@ -748,6 +748,13 @@ input:focus, select:focus {
     box-shadow: var(--shadow-sm);
 }
 
+.input-clearable-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
 .input-currency-wrapper {
     position: relative;
     display: flex;
@@ -762,6 +769,104 @@ input:focus, select:focus {
 }
 .input-currency-wrapper input {
     padding-left: 28px;
+}
+
+.input-clearable-wrapper input,
+.input-currency-wrapper input,
+.search-input-wrapper input {
+    padding-right: 38px;
+}
+
+/* Hide spin buttons so number inputs look seamless with delete button */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Clearable Input Delete Button - Circular Red Fill */
+.btn-clear-input {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    padding: 0;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-danger, #ef4444);
+    border: none;
+    border-radius: 50%;
+    color: #ffffff;
+    opacity: 0.7;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+    transition: all var(--transition-fast);
+    z-index: 2;
+    touch-action: manipulation;
+}
+
+.btn-clear-input i[data-lucide="x"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-style: normal;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.btn-clear-input i[data-lucide="x"]::before {
+    content: '✕';
+}
+
+.btn-clear-input svg,
+.btn-clear-input i {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.6;
+    stroke: #ffffff;
+    pointer-events: none;
+}
+
+/* Enhanced visibility on hover, focus, or when field has existing content */
+.btn-clear-input.has-value,
+.input-clearable-wrapper:hover .btn-clear-input,
+.input-currency-wrapper:hover .btn-clear-input,
+.search-input-wrapper:hover .btn-clear-input {
+    opacity: 0.95;
+}
+
+.btn-clear-input.has-value {
+    opacity: 1;
+    background: var(--color-danger, #ef4444);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.55);
+}
+
+.btn-clear-input:hover,
+.btn-clear-input:focus-visible {
+    opacity: 1;
+    color: #ffffff;
+    background: #dc2626;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.7);
+}
+
+.btn-clear-input:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 1px;
+}
+
+.btn-clear-input:active {
+    transform: translateY(-50%) scale(0.92);
+    background: #b91c1c;
 }
 
 /* Empty State Styling */
@@ -856,19 +961,51 @@ input:focus, select:focus {
     border-bottom: none;
 }
 
-/* Action icons inside tables */
+/* Action icons inside tables and transaction lists - Circular Red Fill */
 .btn-delete-row {
-    color: var(--color-danger);
-    border-radius: 4px;
-    padding: 4px;
-    transition: background var(--transition-fast);
+    color: #ffffff;
+    background: var(--color-danger, #ef4444);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+    transition: all var(--transition-fast);
 }
 .btn-delete-row:hover {
-    background: var(--color-danger-bg);
+    background: #dc2626;
+    color: #ffffff;
+    transform: scale(1.12);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.55);
 }
+.btn-delete-row:active {
+    transform: scale(0.92);
+    background: #b91c1c;
+}
+.btn-delete-row svg,
 .btn-delete-row i {
-    width: 16px;
-    height: 16px;
+    width: 13px;
+    height: 13px;
+    stroke-width: 2.6;
+    stroke: #ffffff;
+}
+.btn-delete-row i[data-lucide="x"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-style: normal;
+    font-size: 13px;
+    line-height: 1;
+}
+.btn-delete-row i[data-lucide="x"]::before {
+    content: '✕';
 }
 
 /* 8. Transaction Log Styling */
@@ -1081,6 +1218,44 @@ input:focus, select:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+.btn-close-modal {
+    border-radius: 50% !important;
+    background: var(--color-danger, #ef4444) !important;
+    color: #ffffff !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+    transition: all var(--transition-fast);
+}
+.btn-close-modal:hover {
+    background: #dc2626 !important;
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.55);
+}
+.btn-close-modal svg,
+.btn-close-modal i {
+    width: 14px !important;
+    height: 14px !important;
+    stroke-width: 2.6;
+    stroke: #ffffff;
+}
+.btn-close-modal i[data-lucide="x"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-style: normal;
+    font-size: 14px;
+    line-height: 1;
+}
+.btn-close-modal i[data-lucide="x"]::before {
+    content: '✕';
 }
 .modal-header h3 {
     font-size: 20px;

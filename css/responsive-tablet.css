@@ -267,4 +267,18 @@
         max-width: 540px !important;
         padding: 24px !important;
     }
+
+    /* 8. Clearable Input Buttons - Tablet touch ergonomics */
+    .btn-clear-input {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        right: 6px !important;
+    }
+    .input-clearable-wrapper input,
+    .input-currency-wrapper input,
+    .search-input-wrapper input {
+        padding-right: 40px !important;
+    }
 }

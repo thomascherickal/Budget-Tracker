@@ -245,7 +245,12 @@
 
                             <div class="form-group">
                                 <label for="quick-description">Description</label>
-                                <input type="text" id="quick-description" placeholder="e.g. Weekly groceries, client payment" required>
+                                <div class="input-clearable-wrapper">
+                                    <input type="text" id="quick-description" placeholder="e.g. Weekly groceries, client payment" required>
+                                    <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                        <i data-lucide="x"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-group-row">
@@ -254,6 +259,9 @@
                                     <div class="input-currency-wrapper">
                                         <span class="currency-symbol">$</span>
                                         <input type="number" id="quick-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                                        <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                            <i data-lucide="x"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="form-group flex-1">
@@ -300,6 +308,9 @@
                                 <div class="input-currency-wrapper">
                                     <span class="currency-symbol">$</span>
                                     <input type="number" id="savings-requirement-amount" step="0.01" min="0" placeholder="0.00" required>
+                                    <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                        <i data-lucide="x"></i>
+                                    </button>
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-outline btn-block">Save Target</button>
@@ -316,7 +327,12 @@
                         <form id="form-add-recurring" class="settings-form">
                             <div class="form-group">
                                 <label for="recurring-name">Expense Name</label>
-                                <input type="text" id="recurring-name" placeholder="e.g. Rent, Gym membership" required>
+                                <div class="input-clearable-wrapper">
+                                    <input type="text" id="recurring-name" placeholder="e.g. Rent, Gym membership" required>
+                                    <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                        <i data-lucide="x"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group-row">
                                 <div class="form-group flex-1">
@@ -324,6 +340,9 @@
                                     <div class="input-currency-wrapper">
                                         <span class="currency-symbol">$</span>
                                         <input type="number" id="recurring-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                                        <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                            <i data-lucide="x"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="form-group flex-1">
@@ -352,7 +371,12 @@
                         <form id="form-add-onetime" class="settings-form">
                             <div class="form-group">
                                 <label for="onetime-name">Expense Name</label>
-                                <input type="text" id="onetime-name" placeholder="e.g. Yearly car tax, Concert tickets" required>
+                                <div class="input-clearable-wrapper">
+                                    <input type="text" id="onetime-name" placeholder="e.g. Yearly car tax, Concert tickets" required>
+                                    <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                        <i data-lucide="x"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="form-group-row">
                                 <div class="form-group flex-1">
@@ -360,6 +384,9 @@
                                     <div class="input-currency-wrapper">
                                         <span class="currency-symbol">$</span>
                                         <input type="number" id="onetime-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                                        <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                            <i data-lucide="x"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="form-group flex-1">
@@ -442,6 +469,9 @@
                         <div class="search-input-wrapper">
                             <i data-lucide="search" class="search-icon"></i>
                             <input type="text" id="log-search" placeholder="Search by description...">
+                            <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                <i data-lucide="x"></i>
+                            </button>
                         </div>
                         <div class="filter-selectors">
                             <select id="filter-type">
@@ -605,7 +635,12 @@
 
                     <div class="form-group">
                         <label for="modal-description">Description</label>
-                        <input type="text" id="modal-description" placeholder="e.g. Uber ride, salary deposit" required>
+                        <div class="input-clearable-wrapper">
+                            <input type="text" id="modal-description" placeholder="e.g. Uber ride, salary deposit" required>
+                            <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -613,6 +648,9 @@
                         <div class="input-currency-wrapper">
                             <span class="currency-symbol">$</span>
                             <input type="number" id="modal-amount" step="0.01" min="0.01" placeholder="0.00" required>
+                            <button type="button" class="btn-clear-input" aria-label="Delete entry" title="Delete entry" tabindex="-1">
+                                <i data-lucide="x"></i>
+                            </button>
                         </div>
                     </div>
                 </div>

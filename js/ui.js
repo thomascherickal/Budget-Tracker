@@ -155,6 +155,117 @@ function formatMonthLabel(monthStr) {
     return dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
+/**
+ * Updates the visual active state of the clear button corresponding to an input.
+ * @param {HTMLInputElement} inputEl
+ * @param {HTMLElement} [btnEl]
+ */
+function updateClearButtonState(inputEl, btnEl) {
+    if (!inputEl) return;
+    const btn = btnEl || (inputEl.parentElement && typeof inputEl.parentElement.querySelector === 'function'
+        ? inputEl.parentElement.querySelector('.btn-clear-input')
+        : null);
+    if (!btn || !btn.classList) return;
+
+    const val = inputEl.value;
+    const hasValue = val !== null && val !== undefined && String(val).trim().length > 0;
+    if (typeof btn.classList.toggle === 'function') {
+        btn.classList.toggle('has-value', hasValue);
+    }
+}
+
+/**
+ * Clears an input field, triggers DOM events, refocuses the field, and updates the clear button.
+ * @param {HTMLInputElement} inputEl
+ * @param {HTMLElement} [btnEl]
+ * @returns {boolean} Whether an input was cleared
+ */
+function clearInputField(inputEl, btnEl) {
+    if (!inputEl) return false;
+    inputEl.value = '';
+    updateClearButtonState(inputEl, btnEl);
+
+    if (typeof inputEl.dispatchEvent === 'function') {
+        const createEvt = (type) => (typeof Event === 'function' ? new Event(type, { bubbles: true }) : { type, bubbles: true, target: inputEl });
+        inputEl.dispatchEvent(createEvt('input'));
+        inputEl.dispatchEvent(createEvt('change'));
+    }
+
+    if (typeof inputEl.focus === 'function') {
+        inputEl.focus();
+    }
+    return true;
+}
+
+/**
+ * Initializes and wires all clear/delete buttons for text and number fields in a container or document.
+ * @param {Document|HTMLElement} [containerOrDoc]
+ * @returns {number} Count of initialized buttons
+ */
+function setupInputClearButtons(containerOrDoc) {
+    const root = containerOrDoc || (typeof document !== 'undefined' ? document : null);
+    if (!root || typeof root.querySelectorAll !== 'function') return 0;
+
+    const buttons = root.querySelectorAll('.btn-clear-input');
+    let initialized = 0;
+
+    buttons.forEach(btn => {
+        if (btn._clearBtnInitialized) return;
+
+        const wrapper = (typeof btn.closest === 'function')
+            ? (btn.closest('.input-clearable-wrapper, .input-currency-wrapper, .search-input-wrapper') || btn.parentElement)
+            : btn.parentElement;
+
+        const input = wrapper && typeof wrapper.querySelector === 'function'
+            ? wrapper.querySelector('input')
+            : null;
+
+        if (input) {
+            updateClearButtonState(input, btn);
+
+            // Prevent loss of focus on mousedown / touchstart
+            const preventBlur = (e) => {
+                if (e && typeof e.preventDefault === 'function') {
+                    e.preventDefault();
+                }
+            };
+            if (typeof btn.addEventListener === 'function') {
+                btn.addEventListener('mousedown', preventBlur);
+                btn.addEventListener('touchstart', preventBlur);
+
+                btn.addEventListener('click', (e) => {
+                    if (e && typeof e.preventDefault === 'function') {
+                        e.preventDefault();
+                    }
+                    clearInputField(input, btn);
+                });
+            }
+
+            if (typeof input.addEventListener === 'function') {
+                const onInputUpdate = () => updateClearButtonState(input, btn);
+                input.addEventListener('input', onInputUpdate);
+                input.addEventListener('change', onInputUpdate);
+                input.addEventListener('keyup', onInputUpdate);
+
+                // Escape key clears text field
+                input.addEventListener('keydown', (e) => {
+                    if (e && e.key === 'Escape' && input.value) {
+                        if (typeof e.preventDefault === 'function') {
+                            e.preventDefault();
+                        }
+                        clearInputField(input, btn);
+                    }
+                });
+            }
+
+            btn._clearBtnInitialized = true;
+            initialized++;
+        }
+    });
+
+    return initialized;
+}
+
 // Universal export pattern
 const AppUI = {
     showToast,
@@ -164,7 +275,10 @@ const AppUI = {
     updateCurrencySymbolsUI,
     syncFormCategoryOptions,
     calculateNextMonth,
-    formatMonthLabel
+    formatMonthLabel,
+    updateClearButtonState,
+    clearInputField,
+    setupInputClearButtons
 };
 
 if (typeof window !== 'undefined') {
@@ -177,6 +291,9 @@ if (typeof window !== 'undefined') {
     window.syncFormCategoryOptions = syncFormCategoryOptions;
     window.calculateNextMonth = calculateNextMonth;
     window.formatMonthLabel = formatMonthLabel;
+    window.updateClearButtonState = updateClearButtonState;
+    window.clearInputField = clearInputField;
+    window.setupInputClearButtons = setupInputClearButtons;
 }
 
 if (typeof module !== 'undefined' && module.exports) {

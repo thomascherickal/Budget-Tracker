@@ -343,6 +343,15 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
         }
     }
 
+    function deleteTransaction(id) {
+        if (!id) return false;
+        AppState.db.transactions = AppState.db.transactions.filter(x => x.id !== id);
+        saveData();
+        showToast('Transaction deleted successfully.', 'info');
+        renderActiveTab();
+        return true;
+    }
+
     // 3.1 Dashboard Render
     function renderDashboard() {
         const financials = getMonthFinancials(AppState.currentMonth, AppState.db);
@@ -448,10 +457,24 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
                     </div>
                     <div class="tx-right">
                         <span class="tx-val ${valueClass}">${prefix}${formatCurrencyDisplay(tx.amount)}</span>
+                        <button class="btn-delete-row btn-delete-tx" data-id="${tx.id}" aria-label="Delete transaction" title="Delete transaction">
+                            <i data-lucide="x"></i>
+                        </button>
                     </div>
                 </div>
             `;
         }).join('');
+
+        const recentDeleteBtns = (typeof recentListContainer.querySelectorAll === 'function')
+            ? recentListContainer.querySelectorAll('.btn-delete-tx')
+            : [];
+
+        recentDeleteBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                deleteTransaction(id);
+            });
+        });
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
@@ -472,8 +495,8 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
                         <td><span class="tx-category-badge">${item.category}</span></td>
                         <td>${formatCurrencyDisplay(item.amount)}</td>
                         <td class="text-center">
-                            <button class="btn-delete-row btn-delete-recurring" data-id="${item.id}">
-                                <i data-lucide="trash-2"></i>
+                            <button class="btn-delete-row btn-delete-recurring" data-id="${item.id}" aria-label="Delete recurring expense" title="Delete recurring expense">
+                                <i data-lucide="x"></i>
                             </button>
                         </td>
                     </tr>
@@ -497,8 +520,8 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
                             <td><span class="tx-category-badge">${item.category}</span></td>
                             <td>${formatCurrencyDisplay(item.amount)}</td>
                             <td class="text-center">
-                                <button class="btn-delete-row btn-delete-onetime" data-id="${item.id}">
-                                    <i data-lucide="trash-2"></i>
+                                <button class="btn-delete-row btn-delete-onetime" data-id="${item.id}" aria-label="Delete planned expense" title="Delete planned expense">
+                                    <i data-lucide="x"></i>
                                 </button>
                             </td>
                         </tr>
@@ -588,23 +611,22 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
                     <td><span class="badge ${badgeClass}">${tx.type}</span></td>
                     <td class="text-right ${valClass}"><strong>${isIncome ? '+' : '-'}${formatCurrencyDisplay(tx.amount)}</strong></td>
                     <td class="text-center">
-                        <button class="btn-delete-row btn-delete-tx" data-id="${tx.id}">
-                            <i data-lucide="trash-2"></i>
+                        <button class="btn-delete-row btn-delete-tx" data-id="${tx.id}" aria-label="Delete transaction" title="Delete transaction">
+                            <i data-lucide="x"></i>
                         </button>
                     </td>
                 </tr>
             `;
         }).join('');
 
-        activeDoc.querySelectorAll('.btn-delete-tx').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = e.currentTarget.getAttribute('data-id');
-                AppState.db.transactions = AppState.db.transactions.filter(x => x.id !== id);
-                saveData();
-                showToast('Transaction deleted successfully.', 'info');
-                renderTransactionsLog();
+        if (typeof activeDoc.querySelectorAll === 'function') {
+            activeDoc.querySelectorAll('.btn-delete-tx').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    deleteTransaction(id);
+                });
             });
-        });
+        }
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
@@ -965,9 +987,15 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
             showToast('Transaction logged successfully!', 'success');
 
             const descInput = activeDoc.getElementById('quick-description');
-            if (descInput) descInput.value = '';
+            if (descInput) {
+                descInput.value = '';
+                updateClearButtonState(descInput);
+            }
             const amtInput = activeDoc.getElementById('quick-amount');
-            if (amtInput) amtInput.value = '';
+            if (amtInput) {
+                amtInput.value = '';
+                updateClearButtonState(amtInput);
+            }
             renderActiveTab();
         });
     }
@@ -1027,9 +1055,15 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
             closeAllModals();
 
             const descInput = activeDoc.getElementById('modal-description');
-            if (descInput) descInput.value = '';
+            if (descInput) {
+                descInput.value = '';
+                updateClearButtonState(descInput);
+            }
             const amtInput = activeDoc.getElementById('modal-amount');
-            if (amtInput) amtInput.value = '';
+            if (amtInput) {
+                amtInput.value = '';
+                updateClearButtonState(amtInput);
+            }
             renderActiveTab();
         });
     }
@@ -1109,8 +1143,14 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
             saveData();
             showToast('Monthly recurring expense added.', 'success');
 
-            if (nameEl) nameEl.value = '';
-            if (amtEl) amtEl.value = '';
+            if (nameEl) {
+                nameEl.value = '';
+                updateClearButtonState(nameEl);
+            }
+            if (amtEl) {
+                amtEl.value = '';
+                updateClearButtonState(amtEl);
+            }
 
             renderBudgetManager();
         });
@@ -1148,8 +1188,14 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
             saveData();
             showToast('One-time planned expense added.', 'success');
 
-            if (nameEl) nameEl.value = '';
-            if (amtEl) amtEl.value = '';
+            if (nameEl) {
+                nameEl.value = '';
+                updateClearButtonState(nameEl);
+            }
+            if (amtEl) {
+                amtEl.value = '';
+                updateClearButtonState(amtEl);
+            }
 
             renderBudgetManager();
         });
@@ -1167,7 +1213,10 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
     const btnResetFilters = activeDoc.getElementById('btn-reset-filters');
     if (btnResetFilters) {
         btnResetFilters.addEventListener('click', () => {
-            if (logSearchInput) logSearchInput.value = '';
+            if (logSearchInput) {
+                logSearchInput.value = '';
+                updateClearButtonState(logSearchInput);
+            }
             if (filterTypeSelect) filterTypeSelect.value = 'all';
             if (filterCatSelect) filterCatSelect.value = 'all';
             renderTransactionsLog();
@@ -1196,6 +1245,7 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
 
         loadData();
         setupExitAutosave();
+        setupInputClearButtons(activeDoc);
 
         if (!AppState.db.settings.currency) {
             AppState.db.settings.currency = AppState.currencyCode;
@@ -1282,6 +1332,10 @@ function bootApp(win = (typeof window !== 'undefined' ? window : null), doc = (t
         formatCurrencyDisplay,
         updateMonthDisplay,
         updateStorageStatusUI,
+        deleteTransaction,
+        setupInputClearButtons: () => setupInputClearButtons(activeDoc),
+        clearInputField,
+        updateClearButtonState,
         init
     };
 }
@@ -1347,6 +1401,9 @@ if (typeof module !== 'undefined' && module.exports) {
         syncFormCategoryOptions: ui.syncFormCategoryOptions,
         calculateNextMonth: ui.calculateNextMonth,
         formatMonthLabel: ui.formatMonthLabel,
+        clearInputField: ui.clearInputField,
+        updateClearButtonState: ui.updateClearButtonState,
+        setupInputClearButtons: ui.setupInputClearButtons,
         // Responsive Layout Engine
         ResponsiveLayout: responsive.ResponsiveLayout,
         BREAKPOINTS: responsive.BREAKPOINTS,

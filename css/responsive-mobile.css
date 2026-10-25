@@ -253,6 +253,44 @@
         box-sizing: border-box !important;
     }
 
+    .input-clearable-wrapper input,
+    .input-currency-wrapper input,
+    .search-input-wrapper input {
+        padding-right: 44px !important;
+    }
+
+    .btn-clear-input {
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        min-height: 26px !important;
+        right: 8px !important;
+        border-radius: 50% !important;
+        background: var(--color-danger, #ef4444) !important;
+        color: #ffffff !important;
+        opacity: 0.8 !important;
+    }
+
+    .btn-clear-input::before {
+        content: '';
+        position: absolute;
+        top: -9px;
+        bottom: -9px;
+        left: -9px;
+        right: -9px;
+    }
+
+    .btn-clear-input svg,
+    .btn-clear-input i {
+        width: 14px !important;
+        height: 14px !important;
+        stroke: #ffffff !important;
+    }
+
+    .btn-clear-input.has-value {
+        opacity: 1 !important;
+    }
+
     .form-group-row {
         flex-direction: column !important;
         gap: 12px !important;
@@ -404,12 +442,40 @@
     }
 
     .btn-delete-row {
-        padding: 8px 10px !important;
-        min-width: 40px !important;
-        min-height: 40px !important;
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        background: var(--color-danger, #ef4444) !important;
+        color: #ffffff !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
+        position: relative;
+    }
+    .btn-delete-row::before {
+        content: '';
+        position: absolute;
+        top: -7px;
+        bottom: -7px;
+        left: -7px;
+        right: -7px;
+    }
+    .btn-delete-row svg,
+    .btn-delete-row i {
+        width: 15px !important;
+        height: 15px !important;
+        stroke: #ffffff !important;
+    }
+
+    .btn-close-modal {
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+        border-radius: 50% !important;
     }
 
     /* 10. Reports & Analytics on Mobile */

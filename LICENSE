@@ -1,21 +1,179 @@
-MIT License
+================================================================================
+DUAL-LICENSE FRAMEWORK & COMMERCIAL TERMS
+Project: [Project Name]
+Copyright (c) 2026 Thomas Cherickal. All rights reserved.
+================================================================================
 
-Copyright (c) 2026 Thomas Cherickal, Generative AI Consultant
+This repository and its contents are governed by a Dual-Licensing Framework.
+By using, copying, modifying, distributing, or contributing to this software,
+you agree to the applicable terms set forth below:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+  1. ROOT LICENSING NOTICE (Option A: SSPL v1.0 OR Option B: Commercial License)
+  2. CONTRIBUTOR LICENSE AGREEMENT (CLA)
+  3. ENTERPRISE COMMERCIAL LICENSE AGREEMENT (TEMPLATE)
+  4. SOURCE FILE HEADER TEMPLATE
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+--------------------------------------------------------------------------------
+SECTION 1: ROOT LICENSING NOTICE
+--------------------------------------------------------------------------------
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+[Project Name] is dual-licensed and made available under two distinct licensing
+options. You may choose to use, copy, modify, and distribute this software
+under the terms of EITHER Option A or Option B below:
+
+OPTION A: Server Side Public License, v1.0 (SSPL)
+You may use this software free of charge under the terms of the Server Side
+Public License, version 1.0 (SSPL), as published by MongoDB, Inc.
+
+Key conditions include:
+- Any modifications to this software must be licensed under the SSPL.
+- Service-as-a-Software (SaaS) Obligation (Section 13): If you make the
+  functionality of this software (or a modified version) available to third
+  parties as a service, you must make the Service Source Code—including all
+  management software, user interfaces, APIs, automation software, monitoring
+  software, backup software, storage software, and hosting software required
+  to run the service—publicly available under the SSPL.
+- Any larger work that incorporates or links to this software must be
+  distributed under the SSPL.
+
+The full text of the Server Side Public License v1.0 is provided in the
+companion file `LICENSE-SSPL.txt` in this repository.
+
+OPTION B: Commercial License
+If you wish to incorporate [Project Name] into a proprietary product, offer it
+as a hosted or managed service without disclosing your entire infrastructure and
+management stack under Section 13 of the SSPL, or receive commercial warranties
+and enterprise support, you must obtain a separate Commercial License from
+Thomas Cherickal.
+
+To inquire about commercial, cloud-hosting, or OEM licensing terms, contact:
+- Licensor: Thomas Cherickal
+- Email: [licensing@yourdomain.com]
+- Website: [yourdomain.com/licensing]
+
+TRADEMARKS & THIRD-PARTY COMPONENTS
+1. Trademarks: Neither the name of Thomas Cherickal nor the names of
+   contributors or products may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+2. Third-Party Libraries: Client drivers, SDKs, or third-party dependencies
+   located in separate directories may be governed by their own respective
+   licenses (such as Apache 2.0 or MIT), as indicated in their corresponding
+   subdirectories.
+
+--------------------------------------------------------------------------------
+SECTION 2: CONTRIBUTOR LICENSE AGREEMENT (CLA)
+--------------------------------------------------------------------------------
+
+To enable Thomas Cherickal to maintain dual-licensing rights (including
+commercial relicensing), all external contributors must accept the following
+terms prior to submitting any Contribution:
+
+1. Definitions:
+   - "You" (or "Your") means the copyright owner or legal entity authorized by
+     the copyright owner that is making this Agreement with Thomas Cherickal.
+   - "Contribution" means any original work of authorship, including any
+     modifications or additions to an existing work, that is intentionally
+     submitted by You to Thomas Cherickal for inclusion in [Project Name].
+
+2. Grant of Copyright License:
+   Subject to the terms of this Agreement, You hereby grant to Thomas Cherickal
+   and to recipients of software distributed by Thomas Cherickal a perpetual,
+   worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright
+   license to reproduce, prepare derivative works of, publicly display, publicly
+   perform, sublicense, and distribute Your Contributions and such derivative
+   works under ANY license, including both the SSPL v1.0 and proprietary
+   commercial licenses.
+
+3. Grant of Patent License:
+   Subject to the terms of this Agreement, You hereby grant to Thomas Cherickal
+   and to recipients of software distributed by Thomas Cherickal a perpetual,
+   worldwide, non-exclusive, no-charge, royalty-free, irrevocable patent license
+   to make, have made, use, offer to sell, sell, import, and otherwise transfer
+   the Work, where such license applies only to those patent claims licensable
+   by You that are necessarily infringed by Your Contribution(s) alone or by
+   combination of Your Contribution(s) with the Work.
+
+4. Representations & Warranties:
+   You represent that: (a) You are legally entitled to grant the above licenses;
+   (b) each of Your Contributions is Your original creation; and (c) Your
+   Contribution submissions include complete details of any third-party license
+   or other restriction of which You are personally aware.
+
+5. Disclaimer:
+   UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, YOU PROVIDE YOUR
+   CONTRIBUTIONS ON AN "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, EITHER EXPRESS OR IMPLIED.
+
+--------------------------------------------------------------------------------
+SECTION 3: ENTERPRISE COMMERCIAL LICENSE AGREEMENT (OUTLINE / RIDER)
+--------------------------------------------------------------------------------
+
+When executed via an Order Form between Thomas Cherickal ("Licensor") and a
+commercial customer ("Licensee"), the following terms govern Commercial Use:
+
+1. Commercial Grant & Copyleft Exemption:
+   Subject to payment of applicable fees, Licensor grants Licensee a
+   non-exclusive, non-transferable, worldwide license during the Subscription
+   Term to install, run, and use the Software for internal business operations
+   (or within Licensee's hosted/OEM product if OEM/SaaS Rights are purchased).
+   Licensee's use under an active Order Form is strictly EXEMPT from the source-
+   code disclosure and copyleft obligations of the SSPL v1.0.
+
+2. Restrictions:
+   Licensee shall not: (a) sublicense, sell, or distribute the Software on a
+   standalone basis; (b) reverse engineer binary-only components; or (c) remove
+   proprietary notices.
+
+3. Fees, Capacity & Audits:
+   Licensee shall pay all fees specified in the Order Form within [30] days of
+   invoice. Exceeding licensed capacity (nodes, CPU cores, or active instances)
+   requires true-up fees. Licensor may audit compliance once per year upon [30]
+   days' prior written notice.
+
+4. Intellectual Property Ownership:
+   Licensor retains all right, title, and interest in and to the Software. Any
+   feedback provided by Licensee may be freely used by Licensor without royalty.
+
+5. Support, Warranties & Disclaimers:
+   Support and upgrades are provided per the selected Order Form tier. Licensor
+   warrants material conformance to documentation for [90] days from delivery.
+   EXCEPT AS EXPRESSLY STATED, THE SOFTWARE IS PROVIDED "AS IS" WITHOUT IMPLIED
+   WARRANTIES.
+
+6. Indemnification & Limitation of Liability:
+   Licensor will defend and indemnify Licensee against third-party IP
+   infringement claims arising from unmodified Software. Neither party is liable
+   for indirect or consequential damages. Aggregate liability is capped at total
+   fees paid in the [12] months preceding the claim.
+
+7. Term, Termination & Governing Law:
+   This Agreement remains in effect for the Subscription Term and renews unless
+   [30/60] days' written notice is given. Upon termination, Licensee must cease
+   use of the commercial edition or transition to compliance under SSPL v1.0.
+   Governed by the laws of [Jurisdiction, e.g., India].
+
+--------------------------------------------------------------------------------
+SECTION 4: SOURCE FILE HEADER TEMPLATE (COPY INTO CODE FILES)
+--------------------------------------------------------------------------------
+
+/*
+ * Copyright (c) 2026 Thomas Cherickal. All rights reserved.
+ *
+ * This file is part of [Project Name].
+ *
+ * [Project Name] is dual-licensed under the Server Side Public License, v1.0
+ * (SSPL) and a Commercial License.
+ *
+ * - For public/source-available use: You may redistribute and/or modify this file
+ *   under the terms of the Server Side Public License, version 1.0, as published
+ *   by MongoDB, Inc. (see LICENSE-SSPL.txt).
+ *
+ * - For commercial/proprietary use: If you do not wish to comply with the terms
+ *   of the SSPL (including Section 13 SaaS source-disclosure obligations), you
+ *   must purchase a Commercial License from Thomas Cherickal. Contact
+ *   [licensing@yourdomain.com] for details.
+ *
+ * This program is distributed in the hope that it will be useful, WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.
+ */
